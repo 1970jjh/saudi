@@ -204,11 +204,11 @@ const App: React.FC = () => {
 
   const getCountryIcon = (country: string) => {
     switch (country) {
-      case 'USA': return '🇺🇸';
-      case 'Germany': return '🇩🇪';
-      case 'China': return '🇨🇳';
-      case 'Korea': return '🇰🇷';
-      default: return '🏳️';
+      case 'USA': return 'https://i.ibb.co/zTvfYwmk/US.png';
+      case 'Germany': return 'https://i.ibb.co/jkSwLzRp/DE.png';
+      case 'China': return 'https://i.ibb.co/bg08JSCJ/CN.png';
+      case 'Korea': return 'https://i.ibb.co/hFWRvYpp/KR.png';
+      default: return '';
     }
   };
 
@@ -276,14 +276,14 @@ const App: React.FC = () => {
   };
 
   const NavigationBar = ({ nextLabel = "다음으로", showBack = true, onNext = handleNext, showInfoBanner = true }) => (
-    <div className="flex flex-col gap-3 mt-6 w-full shrink-0">
-      <div className="flex gap-3 w-full">
-        {showBack && <button onClick={handleBack} className="flex-1 iso-button bg-white py-4 px-4 font-bold text-slate-500 text-xs">뒤로</button>}
-        <button onClick={onNext} className="flex-[2] iso-button iso-button-primary py-4 px-4 font-bold text-xs tracking-tight">{nextLabel}</button>
+    <div className="flex flex-col gap-2 mt-4 w-full shrink-0 pb-4">
+      <div className="flex gap-2 w-full">
+        {showBack && <button onClick={handleBack} className="flex-1 iso-button bg-white py-3 px-4 font-bold text-slate-500 text-xs">뒤로</button>}
+        <button onClick={onNext} className="flex-[2] iso-button iso-button-primary py-3 px-4 font-bold text-xs tracking-tight">{nextLabel}</button>
       </div>
       {showInfoBanner && (
-        <button onClick={() => setShowInfoCard(true)} className="w-full bg-emerald-50 rounded-[22px] p-4 flex items-center justify-center gap-3 group border border-emerald-100 transition-all hover:bg-emerald-100 hover:shadow-lg hover:shadow-emerald-100/50">
-          <span className="text-xl animate-bounce">📁</span>
+        <button onClick={() => setShowInfoCard(true)} className="w-full bg-emerald-50 rounded-[18px] p-3 flex items-center justify-center gap-3 group border border-emerald-100 transition-all hover:bg-emerald-100 hover:shadow-lg hover:shadow-emerald-100/50">
+          <span className="text-lg">📁</span>
           <span className="text-xs font-bold text-emerald-900 tracking-tight">정보카드 확인</span>
           <span className="text-[10px] text-emerald-500 font-bold ml-auto opacity-60">TOUCH &rarr;</span>
         </button>
@@ -367,25 +367,25 @@ const App: React.FC = () => {
   );
 
   const renderIntro = () => (
-    <div className="flex flex-col h-full animate-slide-up p-6">
-      <div className="iso-card p-7 flex-1 flex flex-col overflow-y-auto no-scrollbar">
-        <div className="flex items-center justify-between mb-6 border-b border-slate-50 pb-6">
-          <h2 className="text-2xl font-black text-slate-900 italic tracking-tight">작전 브리핑</h2>
-          <div className="bg-emerald-500 text-white px-3 py-1 rounded-full text-[9px] font-black shadow-lg">{selectedTeam}조</div>
+    <div className="flex flex-col h-full animate-slide-up p-4">
+      <div className="iso-card p-5 flex-1 flex flex-col overflow-y-auto no-scrollbar">
+        <div className="flex items-center justify-between mb-4 border-b border-slate-50 pb-4">
+          <h2 className="text-xl font-black text-slate-900 italic tracking-tight">작전 브리핑</h2>
+          <div className="bg-emerald-500 text-white px-2.5 py-1 rounded-full text-[8px] font-black shadow-lg">{selectedTeam}조</div>
         </div>
-        <div className="space-y-6">
+        <div className="space-y-4">
           {MISSION_SLIDES.map((slide, idx) => (
-            <div key={idx} className="flex gap-4 items-start group">
-              <div className="w-12 h-12 bg-white rounded-xl flex items-center justify-center text-3xl shrink-0 shadow-lg border border-slate-50">{slide.image}</div>
+            <div key={idx} className="flex gap-3 items-start group">
+              <div className="w-10 h-10 bg-white rounded-lg flex items-center justify-center text-2xl shrink-0 shadow-md border border-slate-50">{slide.image}</div>
               <div className="pt-0.5">
-                <h3 className="font-black text-slate-900 text-sm mb-0.5 tracking-tight">{slide.title}</h3>
-                <p className="text-[11px] font-medium text-slate-500 leading-relaxed">{slide.content}</p>
+                <h3 className="font-black text-slate-900 text-[13px] mb-0.5 tracking-tight">{slide.title}</h3>
+                <p className="text-[10px] font-medium text-slate-500 leading-relaxed">{slide.content}</p>
               </div>
             </div>
           ))}
         </div>
-        <div className="mt-8 py-3 px-6 bg-slate-900 rounded-[22px] shadow-lg relative overflow-hidden flex items-center justify-center min-h-[60px]">
-          <p className="text-[15px] font-black text-white leading-tight relative z-10 text-center uppercase tracking-tight whitespace-nowrap">입찰 수주를 위한 최적의 제안가를 찾아라!</p>
+        <div className="mt-5 py-2.5 px-4 bg-slate-900 rounded-[18px] shadow-lg relative overflow-hidden flex items-center justify-center">
+          <p className="text-[13px] font-black text-white leading-tight relative z-10 text-center uppercase tracking-tight">입찰 수주를 위한 최적의 제안가를 찾아라!</p>
         </div>
       </div>
       <NavigationBar nextLabel="경쟁사 분석하기" showInfoBanner={false} />
@@ -393,32 +393,32 @@ const App: React.FC = () => {
   );
 
   const renderAnalysis = () => (
-    <div className="flex flex-col h-full animate-slide-up p-6">
-      <div className="iso-card p-7 flex-1 overflow-y-auto no-scrollbar">
-        <div className="mb-8 flex items-center gap-3">
-           <div className="w-10 h-10 bg-slate-900 rounded-xl flex items-center justify-center text-xl shadow-xl">🛰️</div>
-           <h2 className="text-xl font-black text-slate-900 tracking-tight">인텔리전스 분석</h2>
+    <div className="flex flex-col h-full animate-slide-up p-4">
+      <div className="iso-card p-5 flex-1 overflow-y-auto no-scrollbar">
+        <div className="mb-5 flex items-center gap-2">
+           <div className="w-8 h-8 bg-slate-900 rounded-lg flex items-center justify-center text-lg shadow-lg">🛰️</div>
+           <h2 className="text-lg font-black text-slate-900 tracking-tight">국가별 특징 & 정보분석</h2>
         </div>
-        <div className="space-y-6">
+        <div className="space-y-4">
           {COMPETITOR_DETAILS.map(comp => (
-            <div key={comp.country} className="p-6 bg-white rounded-[32px] border border-slate-100 shadow-sm relative overflow-hidden group">
-              <div className="flex items-center gap-3 mb-5">
-                <span className="text-4xl">{getCountryIcon(comp.country)}</span>
-                <span className="font-black text-slate-900 text-2xl tracking-tight leading-none">{getCountryDisplayName(comp.country)}</span>
+            <div key={comp.country} className="p-4 bg-white rounded-[24px] border border-slate-100 shadow-sm relative overflow-hidden group">
+              <div className="absolute top-3 right-3 w-11 h-11 rounded-full overflow-hidden shadow-md"><img src={getCountryIcon(comp.country)} alt="" className="w-full h-full object-cover" /></div>
+              <div className="mb-3">
+                <span className="font-black text-slate-900 text-xl tracking-tight leading-none">{getCountryDisplayName(comp.country)}</span>
               </div>
-              <div className="space-y-4 relative z-10">
-                <div className="flex gap-3">
-                   <div className="w-1.5 h-auto bg-emerald-500 rounded-full shadow-sm" />
+              <div className="space-y-3 relative z-10">
+                <div className="flex gap-2">
+                   <div className="w-1 h-auto bg-emerald-500 rounded-full shadow-sm" />
                    <div className="flex-1">
-                     <p className="text-[10px] font-black text-emerald-600 uppercase mb-1 tracking-widest">강점 (STRENGTH)</p>
-                     <p className="text-[15.5px] font-bold text-slate-800 leading-tight">{comp.strength}</p>
+                     <p className="text-[9px] font-black text-emerald-600 uppercase mb-0.5 tracking-widest">강점 (STRENGTH)</p>
+                     <p className="text-[13px] font-bold text-slate-800 leading-tight">{comp.strength}</p>
                    </div>
                 </div>
-                <div className="flex gap-3">
-                   <div className="w-1.5 h-auto bg-red-400 rounded-full shadow-sm" />
+                <div className="flex gap-2">
+                   <div className="w-1 h-auto bg-red-400 rounded-full shadow-sm" />
                    <div className="flex-1">
-                     <p className="text-[10px] font-black text-red-600 uppercase mb-1 tracking-widest">약점 (WEAKNESS)</p>
-                     <p className="text-[15.5px] font-bold text-slate-800 leading-tight">{comp.weakness}</p>
+                     <p className="text-[9px] font-black text-red-600 uppercase mb-0.5 tracking-widest">약점 (WEAKNESS)</p>
+                     <p className="text-[13px] font-bold text-slate-800 leading-tight">{comp.weakness}</p>
                    </div>
                 </div>
               </div>
@@ -431,26 +431,26 @@ const App: React.FC = () => {
   );
 
   const renderRecords = () => (
-    <div className="flex flex-col h-full animate-slide-up p-6">
-      <div className="iso-card p-7 flex-1 flex flex-col overflow-hidden">
-        <div className="mb-6 flex items-center justify-between">
-           <div className="flex items-center gap-3">
-             <div className="w-10 h-10 bg-emerald-500 rounded-xl flex items-center justify-center text-xl shadow-xl shadow-emerald-100">📝</div>
-             <h2 className="text-xl font-black text-slate-900 tracking-tight">추가 정보 기록</h2>
+    <div className="flex flex-col h-full animate-slide-up p-4">
+      <div className="iso-card p-5 flex-1 flex flex-col overflow-hidden">
+        <div className="mb-4 flex items-center justify-between">
+           <div className="flex items-center gap-2">
+             <div className="w-8 h-8 bg-emerald-500 rounded-lg flex items-center justify-center text-lg shadow-lg shadow-emerald-100">📝</div>
+             <h2 className="text-lg font-black text-slate-900 tracking-tight">추가 정보 기록</h2>
            </div>
-           <div className="flex items-center gap-2 px-3 py-1.5 bg-slate-50 rounded-full border border-slate-100">
-             <div className={`w-2 h-2 rounded-full ${isSyncing ? 'bg-amber-400 animate-pulse' : 'bg-emerald-400'}`} />
-             <span className="text-[8px] font-black text-slate-400 uppercase tracking-widest">{isSyncing ? '동기화 중...' : '실시간 공유됨'}</span>
+           <div className="flex items-center gap-1.5 px-2 py-1 bg-slate-50 rounded-full border border-slate-100">
+             <div className={`w-1.5 h-1.5 rounded-full ${isSyncing ? 'bg-amber-400 animate-pulse' : 'bg-emerald-400'}`} />
+             <span className="text-[7px] font-black text-slate-400 uppercase tracking-widest">{isSyncing ? '동기화 중...' : '실시간 공유됨'}</span>
            </div>
         </div>
-        <div className="flex-1 overflow-y-auto no-scrollbar pb-10">
-          <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] px-1 mb-4">확보 정보 및 전략 메모</p>
-          <div className="space-y-4">
+        <div className="flex-1 overflow-y-auto no-scrollbar pb-2">
+          <p className="text-[9px] font-black text-slate-400 uppercase tracking-[0.2em] px-1 mb-3">확보 정보 및 전략 메모</p>
+          <div className="space-y-3">
             {notes.map((note, idx) => (
               <div key={idx} className="relative group animate-in fade-in slide-in-from-bottom-2 duration-300">
-                <div className="iso-card bg-slate-50 border-slate-100 p-4 focus-within:bg-white focus-within:border-emerald-500/30 transition-all focus-within:shadow-xl focus-within:shadow-emerald-50 relative">
-                  <textarea value={note} onChange={(e) => handleNoteChange(idx, e.target.value)} placeholder={idx === notes.length - 1 ? "타팀에서 확보한 추가 정보를 기록하세요" : "전략 기록..."} rows={1} className="w-full bg-transparent font-bold text-[11.5px] text-slate-700 focus:outline-none resize-none leading-relaxed overflow-hidden" />
-                  {idx < notes.length - 1 && note.trim() !== '' && <button onClick={() => removeNote(idx)} className="absolute top-2 right-2 w-6 h-6 rounded-full bg-slate-100 text-slate-400 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all hover:bg-red-50 hover:text-red-500"><span className="text-xs">&times;</span></button>}
+                <div className="iso-card bg-slate-50 border-slate-100 p-3 focus-within:bg-white focus-within:border-emerald-500/30 transition-all focus-within:shadow-xl focus-within:shadow-emerald-50 relative">
+                  <textarea value={note} onChange={(e) => handleNoteChange(idx, e.target.value)} placeholder={idx === notes.length - 1 ? "타팀에서 확보한 추가 정보를 기록하세요" : "전략 기록..."} rows={1} className="w-full bg-transparent font-bold text-[11px] text-slate-700 focus:outline-none resize-none leading-relaxed overflow-hidden" />
+                  {idx < notes.length - 1 && note.trim() !== '' && <button onClick={() => removeNote(idx)} className="absolute top-2 right-2 w-5 h-5 rounded-full bg-slate-100 text-slate-400 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all hover:bg-red-50 hover:text-red-500"><span className="text-xs">&times;</span></button>}
                 </div>
               </div>
             ))}
@@ -482,37 +482,35 @@ const App: React.FC = () => {
     }
 
     return (
-      <div className="flex flex-col h-full animate-slide-up p-6">
-        <div className="iso-card p-7 flex-1 overflow-y-auto no-scrollbar">
-          <div className="mb-6 flex items-center gap-3">
-             <div className="w-10 h-10 bg-emerald-500 rounded-xl flex items-center justify-center text-xl shadow-xl">🎯</div>
-             <h2 className="text-xl font-black text-slate-900 tracking-tight">최종 제안서 작성</h2>
+      <div className="flex flex-col h-full animate-slide-up p-4">
+        <div className="iso-card p-4 flex-1 overflow-y-auto no-scrollbar">
+          <div className="mb-4 flex items-center gap-2">
+             <div className="w-8 h-8 bg-emerald-500 rounded-lg flex items-center justify-center text-lg shadow-lg">🎯</div>
+             <h2 className="text-lg font-black text-slate-900 tracking-tight">최종 제안서 작성</h2>
           </div>
-          <div className="space-y-8">
-            <div className="bg-slate-50 rounded-[32px] p-6 border border-slate-100">
-              <div className="space-y-6">
-                <div className="space-y-2">
-                  <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest px-1">최종 제안가 (백만 달러)</label>
-                  <input type="number" value={userPrice} onChange={(e) => setUserPrice(e.target.value)} placeholder="" className="w-full bg-white border-2 border-transparent focus:border-emerald-500/30 rounded-2xl p-4 font-black text-slate-900 focus:outline-none transition-all shadow-sm text-2xl" />
+          <div className="space-y-4">
+            <div className="bg-slate-50 rounded-[20px] p-4 border border-slate-100">
+              <div className="space-y-3">
+                <div className="space-y-1">
+                  <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest px-1">최종 제안가 (백만 달러)</label>
+                  <input type="number" value={userPrice} onChange={(e) => setUserPrice(e.target.value)} placeholder="" className="w-full bg-white border-2 border-transparent focus:border-emerald-500/30 rounded-xl p-3 font-black text-slate-900 focus:outline-none transition-all shadow-sm text-xl" />
                 </div>
-                <div className="space-y-2">
-                  <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest px-1">예상 이익 (백만 달러)</label>
-                  <input type="number" value={expectedProfit} onChange={(e) => setExpectedProfit(e.target.value)} placeholder="" className="w-full bg-white border-2 border-transparent focus:border-emerald-500/30 rounded-2xl p-4 font-black text-emerald-600 focus:outline-none transition-all shadow-sm text-2xl" />
+                <div className="space-y-1">
+                  <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest px-1">예상 이익 (백만 달러)</label>
+                  <input type="number" value={expectedProfit} onChange={(e) => setExpectedProfit(e.target.value)} placeholder="" className="w-full bg-white border-2 border-transparent focus:border-emerald-500/30 rounded-xl p-3 font-black text-emerald-600 focus:outline-none transition-all shadow-sm text-xl" />
                 </div>
               </div>
             </div>
-            <div className="space-y-4">
-              <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest px-2">국가별 입찰 최종 점수 기록</p>
-              <div className="grid grid-cols-1 gap-3">
+            <div className="space-y-2">
+              <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest px-1">국가별 입찰 최종 점수 기록</p>
+              <div className="grid grid-cols-2 gap-2">
                 {(['USA', 'Germany', 'China', 'Korea'] as const).map(country => (
-                  <div key={country} className="flex items-center gap-4 bg-white p-4 rounded-[24px] border border-slate-100 shadow-sm">
-                    <div className="flex items-center gap-3 flex-1">
-                      <span className="text-3xl">{getCountryIcon(country)}</span>
-                      <span className="font-black text-slate-900 text-sm tracking-tight">{getCountryDisplayName(country)}</span>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <input type="number" value={manualScores[country]} onChange={(e) => setManualScores(prev => ({ ...prev, [country]: e.target.value }))} placeholder="" className="w-20 bg-slate-50 border-transparent rounded-xl p-3 text-right font-black text-slate-900 focus:outline-none focus:ring-2 focus:ring-emerald-500/20 transition-all" />
-                      <span className="text-[10px] font-black text-slate-400">점</span>
+                  <div key={country} className="flex items-center gap-1.5 bg-white p-2.5 rounded-[16px] border border-slate-100 shadow-sm">
+                    <div className="w-6 h-6 rounded-full overflow-hidden shrink-0"><img src={getCountryIcon(country)} alt="" className="w-full h-full object-cover" /></div>
+                    <span className="font-black text-slate-900 text-[11px] tracking-tight flex-1">{getCountryDisplayName(country)}</span>
+                    <div className="flex items-center gap-0.5">
+                      <input type="number" value={manualScores[country]} onChange={(e) => setManualScores(prev => ({ ...prev, [country]: e.target.value }))} placeholder="" className="w-12 bg-slate-50 border-transparent rounded-lg p-2 text-right font-black text-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500/20 transition-all" />
+                      <span className="text-[10px] font-bold text-slate-400">점</span>
                     </div>
                   </div>
                 ))}
@@ -692,21 +690,20 @@ const App: React.FC = () => {
       {role === 'USER' ? (
         <div className="flex flex-col items-center justify-center min-h-screen p-6">
           <div className="mobile-frame animate-slide-up">
-            <div className="mt-14 px-8 text-center shrink-0">
-               <h1 className="text-2xl font-black text-slate-900 tracking-tighter uppercase leading-none">Saudi TFT Mission</h1>
-               <div className="h-1 w-12 bg-emerald-500 mx-auto mt-2 rounded-full shadow-sm shadow-emerald-200"></div>
-            </div>
-            <div className="flex items-center justify-between mt-6 mb-6 mx-6 px-4 py-2.5 bg-white/80 backdrop-blur-xl rounded-[24px] border border-white/50 shadow-xl shadow-slate-200/50 shrink-0 z-10">
-              <div className="flex items-center gap-2">
-                <button onClick={() => { setRole(null); setStep(AppStep.SELECT_ROLE); }} className="w-8 h-8 bg-emerald-500 rounded-lg flex items-center justify-center text-sm shadow-xl shadow-emerald-200 transition-all hover:scale-110">🇸🇦</button>
-                <div className="flex flex-col"><span className="text-[9px] font-black uppercase tracking-widest text-slate-900 mb-0.5 leading-none">Vision 2030</span></div>
+            <div className="flex items-center justify-between mt-6 mb-4 mx-6 px-4 py-3 bg-white/80 backdrop-blur-xl rounded-[24px] border border-white/50 shadow-xl shadow-slate-200/50 shrink-0 z-10">
+              <div className="flex items-center gap-3">
+                <button onClick={() => { setRole(null); setStep(AppStep.SELECT_ROLE); }} className="w-9 h-9 bg-emerald-500 rounded-lg flex items-center justify-center text-sm shadow-xl shadow-emerald-200 transition-all hover:scale-110">🇸🇦</button>
+                <div className="flex flex-col">
+                  <span className="text-[11px] font-black uppercase tracking-tight text-slate-900 leading-none">Saudi TFT Mission</span>
+                  <span className="text-[8px] font-bold uppercase tracking-widest text-slate-400 mt-0.5">Vision 2030</span>
+                </div>
               </div>
               <div className="flex items-center gap-2">
                 {studentName && <span className="text-[8px] font-black bg-emerald-100 text-emerald-600 px-3 py-1 rounded-full">{studentName}</span>}
                 <button onClick={() => { setRole('ADMIN'); setStep(AppStep.ADMIN_LOGIN); }} className="bg-slate-900 text-white text-[9px] font-black px-4 py-2 rounded-full shadow-lg shadow-slate-200">관리자</button>
               </div>
             </div>
-            {step !== AppStep.TEAM_SELECTION && step !== AppStep.RESULT && <div className="px-6 mb-2"><StepIndicator currentStep={step} /></div>}
+            {step !== AppStep.TEAM_SELECTION && step !== AppStep.RESULT && <div className="px-4"><StepIndicator currentStep={step} /></div>}
             <div className="flex-1 overflow-hidden relative">
               {step === AppStep.TEAM_SELECTION && renderTeamSelection()}
               {step === AppStep.INTRO && renderIntro()}
@@ -715,7 +712,6 @@ const App: React.FC = () => {
               {step === AppStep.SIMULATION && renderSimulation()}
               {step === AppStep.RESULT && renderResult()}
             </div>
-            <footer className="mb-8 text-center text-[8px] font-black uppercase tracking-[0.4em] text-slate-300 italic shrink-0">Saudi Strategic Intel Unit</footer>
             {renderInfoCardModal()}
           </div>
         </div>
