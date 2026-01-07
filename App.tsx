@@ -397,11 +397,12 @@ const App: React.FC = () => {
       <div className="iso-card p-5 flex-1 overflow-y-auto no-scrollbar">
         <div className="mb-5 flex items-center gap-2">
            <div className="w-8 h-8 bg-slate-900 rounded-lg flex items-center justify-center text-lg shadow-lg">🛰️</div>
-           <h2 className="text-lg font-black text-slate-900 tracking-tight">인텔리전스 분석</h2>
+           <h2 className="text-lg font-black text-slate-900 tracking-tight">국가별 특징 & 정보분석</h2>
         </div>
         <div className="space-y-4">
           {COMPETITOR_DETAILS.map(comp => (
             <div key={comp.country} className="p-4 bg-white rounded-[24px] border border-slate-100 shadow-sm relative overflow-hidden group">
+              <div className="absolute top-3 right-3 w-10 h-10 bg-slate-100 rounded-full flex items-center justify-center text-2xl shadow-inner">{getCountryIcon(comp.country)}</div>
               <div className="mb-3">
                 <span className="font-black text-slate-900 text-xl tracking-tight leading-none">{getCountryDisplayName(comp.country)}</span>
               </div>
