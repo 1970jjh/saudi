@@ -506,7 +506,8 @@ const App: React.FC = () => {
               <div className="grid grid-cols-2 gap-2">
                 {(['USA', 'Germany', 'China', 'Korea'] as const).map(country => (
                   <div key={country} className="flex items-center gap-2 bg-white p-2.5 rounded-[16px] border border-slate-100 shadow-sm">
-                    <span className="font-black text-slate-900 text-[12px] tracking-tight flex-1">{getCountryDisplayName(country)}</span>
+                    <div className="w-6 h-6 rounded-full overflow-hidden shrink-0"><img src={getCountryIcon(country)} alt="" className="w-full h-full object-cover" /></div>
+                    <span className="font-black text-slate-900 text-[11px] tracking-tight flex-1">{getCountryDisplayName(country)}</span>
                     <input type="number" value={manualScores[country]} onChange={(e) => setManualScores(prev => ({ ...prev, [country]: e.target.value }))} placeholder="" className="w-14 bg-slate-50 border-transparent rounded-lg p-2 text-right font-black text-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500/20 transition-all" />
                   </div>
                 ))}
