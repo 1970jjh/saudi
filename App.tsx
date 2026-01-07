@@ -692,21 +692,20 @@ const App: React.FC = () => {
       {role === 'USER' ? (
         <div className="flex flex-col items-center justify-center min-h-screen p-6">
           <div className="mobile-frame animate-slide-up">
-            <div className="mt-14 px-8 text-center shrink-0">
-               <h1 className="text-2xl font-black text-slate-900 tracking-tighter uppercase leading-none">Saudi TFT Mission</h1>
-               <div className="h-1 w-12 bg-emerald-500 mx-auto mt-2 rounded-full shadow-sm shadow-emerald-200"></div>
-            </div>
-            <div className="flex items-center justify-between mt-6 mb-6 mx-6 px-4 py-2.5 bg-white/80 backdrop-blur-xl rounded-[24px] border border-white/50 shadow-xl shadow-slate-200/50 shrink-0 z-10">
-              <div className="flex items-center gap-2">
-                <button onClick={() => { setRole(null); setStep(AppStep.SELECT_ROLE); }} className="w-8 h-8 bg-emerald-500 rounded-lg flex items-center justify-center text-sm shadow-xl shadow-emerald-200 transition-all hover:scale-110">🇸🇦</button>
-                <div className="flex flex-col"><span className="text-[9px] font-black uppercase tracking-widest text-slate-900 mb-0.5 leading-none">Vision 2030</span></div>
+            <div className="flex items-center justify-between mt-6 mb-4 mx-6 px-4 py-3 bg-white/80 backdrop-blur-xl rounded-[24px] border border-white/50 shadow-xl shadow-slate-200/50 shrink-0 z-10">
+              <div className="flex items-center gap-3">
+                <button onClick={() => { setRole(null); setStep(AppStep.SELECT_ROLE); }} className="w-9 h-9 bg-emerald-500 rounded-lg flex items-center justify-center text-sm shadow-xl shadow-emerald-200 transition-all hover:scale-110">🇸🇦</button>
+                <div className="flex flex-col">
+                  <span className="text-[11px] font-black uppercase tracking-tight text-slate-900 leading-none">Saudi TFT Mission</span>
+                  <span className="text-[8px] font-bold uppercase tracking-widest text-slate-400 mt-0.5">Vision 2030</span>
+                </div>
               </div>
               <div className="flex items-center gap-2">
                 {studentName && <span className="text-[8px] font-black bg-emerald-100 text-emerald-600 px-3 py-1 rounded-full">{studentName}</span>}
                 <button onClick={() => { setRole('ADMIN'); setStep(AppStep.ADMIN_LOGIN); }} className="bg-slate-900 text-white text-[9px] font-black px-4 py-2 rounded-full shadow-lg shadow-slate-200">관리자</button>
               </div>
             </div>
-            {step !== AppStep.TEAM_SELECTION && step !== AppStep.RESULT && <div className="px-6 mb-2"><StepIndicator currentStep={step} /></div>}
+            {step !== AppStep.TEAM_SELECTION && step !== AppStep.RESULT && <div className="px-6 mb-1"><StepIndicator currentStep={step} /></div>}
             <div className="flex-1 overflow-hidden relative">
               {step === AppStep.TEAM_SELECTION && renderTeamSelection()}
               {step === AppStep.INTRO && renderIntro()}
