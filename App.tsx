@@ -402,8 +402,7 @@ const App: React.FC = () => {
         <div className="space-y-4">
           {COMPETITOR_DETAILS.map(comp => (
             <div key={comp.country} className="p-4 bg-white rounded-[24px] border border-slate-100 shadow-sm relative overflow-hidden group">
-              <div className="flex items-center gap-2 mb-3">
-                <span className="text-3xl">{getCountryIcon(comp.country)}</span>
+              <div className="mb-3">
                 <span className="font-black text-slate-900 text-xl tracking-tight leading-none">{getCountryDisplayName(comp.country)}</span>
               </div>
               <div className="space-y-3 relative z-10">
@@ -506,8 +505,7 @@ const App: React.FC = () => {
               <div className="grid grid-cols-2 gap-2">
                 {(['USA', 'Germany', 'China', 'Korea'] as const).map(country => (
                   <div key={country} className="flex items-center gap-2 bg-white p-2.5 rounded-[16px] border border-slate-100 shadow-sm">
-                    <span className="text-xl">{getCountryIcon(country)}</span>
-                    <span className="font-black text-slate-900 text-[11px] tracking-tight flex-1">{getCountryDisplayName(country)}</span>
+                    <span className="font-black text-slate-900 text-[12px] tracking-tight flex-1">{getCountryDisplayName(country)}</span>
                     <input type="number" value={manualScores[country]} onChange={(e) => setManualScores(prev => ({ ...prev, [country]: e.target.value }))} placeholder="" className="w-14 bg-slate-50 border-transparent rounded-lg p-2 text-right font-black text-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500/20 transition-all" />
                   </div>
                 ))}
