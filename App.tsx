@@ -56,7 +56,10 @@ const App: React.FC = () => {
   const [ceoFeedback, setCeoFeedback] = useState<string>('');
   const [loading, setLoading] = useState<boolean>(false);
 
-  // Global Session Sync (Reveal Results)
+  // Admin: Team Submissions Tracking
+  const [teamSubmissions, setTeamSubmissions] = useState<Record<number, { name: string; price: string; profit: string; timestamp: number }>>({});
+
+  // Global Session Sync (Reveal Results & Team Submissions)
   useEffect(() => {
     const sessionChannel = new BroadcastChannel('global_session_sync');
     sessionChannel.onmessage = (event) => {
@@ -65,6 +68,17 @@ const App: React.FC = () => {
       } else if (event.data.type === 'RESET_RESULTS') {
         setIsResultsRevealed(false);
         setHasSubmitted(false);
+        setTeamSubmissions({});
+      } else if (event.data.type === 'TEAM_SUBMISSION') {
+        setTeamSubmissions(prev => ({
+          ...prev,
+          [event.data.team]: {
+            name: event.data.name,
+            price: event.data.price,
+            profit: event.data.profit,
+            timestamp: event.data.timestamp
+          }
+        }));
       }
     };
     return () => sessionChannel.close();
@@ -181,6 +195,21 @@ const App: React.FC = () => {
   const handleFinalSubmit = async () => {
     setLoading(true);
     setHasSubmitted(true);
+
+    // Broadcast submission to admin
+    if (selectedTeam) {
+      const sessionChannel = new BroadcastChannel('global_session_sync');
+      sessionChannel.postMessage({
+        type: 'TEAM_SUBMISSION',
+        team: selectedTeam,
+        name: studentName,
+        price: userPrice,
+        profit: expectedProfit,
+        timestamp: Date.now()
+      });
+      sessionChannel.close();
+    }
+
     const feedback = await getStrategyFeedback(results, Number(expectedProfit));
     setCeoFeedback(feedback);
     setLoading(false);
@@ -462,6 +491,12 @@ const App: React.FC = () => {
   );
 
   const renderSimulation = () => {
+    // If admin revealed results, go to result screen regardless of submission status
+    if (isResultsRevealed) {
+      setTimeout(() => setStep(AppStep.RESULT), 100);
+      return null;
+    }
+
     if (hasSubmitted && !isResultsRevealed) {
       return (
         <div className="flex flex-col h-full animate-slide-up p-6 items-center justify-center text-center">
@@ -474,11 +509,6 @@ const App: React.FC = () => {
           </div>
         </div>
       );
-    }
-
-    if (hasSubmitted && isResultsRevealed) {
-      setTimeout(() => setStep(AppStep.RESULT), 100);
-      return null;
     }
 
     return (
@@ -631,6 +661,41 @@ const App: React.FC = () => {
              </div>
            </div>
         </div>
+
+        <div className="iso-card p-12">
+           <h3 className="font-black text-xl text-slate-900 mb-6 tracking-tight flex items-center gap-3">
+             <span className="w-10 h-10 bg-emerald-50 rounded-xl flex items-center justify-center text-lg">📊</span>
+             팀별 제출 현황
+             <span className="ml-auto text-sm font-bold text-emerald-500">{Object.keys(teamSubmissions).length} / {maxTeams}팀 제출</span>
+           </h3>
+           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+             {Array.from({ length: maxTeams }).map((_, i) => {
+               const teamNum = i + 1;
+               const submission = teamSubmissions[teamNum];
+               return (
+                 <div key={teamNum} className={`p-4 rounded-[20px] border-2 transition-all ${submission ? 'bg-emerald-50 border-emerald-200' : 'bg-slate-50 border-slate-100'}`}>
+                   <div className="flex items-center justify-between mb-2">
+                     <span className="font-black text-lg text-slate-900">{teamNum}조</span>
+                     {submission ? (
+                       <span className="w-3 h-3 bg-emerald-500 rounded-full animate-pulse" />
+                     ) : (
+                       <span className="w-3 h-3 bg-slate-300 rounded-full" />
+                     )}
+                   </div>
+                   {submission ? (
+                     <div className="space-y-1">
+                       <p className="text-[10px] font-bold text-slate-500">{submission.name}</p>
+                       <p className="text-sm font-black text-emerald-600">${submission.price}M</p>
+                       <p className="text-[10px] font-bold text-slate-400">예상수익: ${submission.profit}M</p>
+                     </div>
+                   ) : (
+                     <p className="text-[11px] font-bold text-slate-400">대기 중...</p>
+                   )}
+                 </div>
+               );
+             })}
+           </div>
+        </div>
       </div>
       
       <div className="space-y-10">
@@ -643,9 +708,10 @@ const App: React.FC = () => {
           </div>
         </div>
         <div className="iso-card p-12 flex flex-col items-center text-center">
-           <div className="w-20 h-20 bg-emerald-50 rounded-[28px] flex items-center justify-center text-4xl mb-6 shadow-lg shadow-emerald-50">👥</div>
-           <h3 className="font-black text-xl text-slate-900 mb-2">실시간 접속</h3>
-           <p className="text-5xl font-black text-emerald-500">{studentName ? 1 : 0}</p>
+           <div className="w-20 h-20 bg-emerald-50 rounded-[28px] flex items-center justify-center text-4xl mb-6 shadow-lg shadow-emerald-50">📝</div>
+           <h3 className="font-black text-xl text-slate-900 mb-2">제출 완료</h3>
+           <p className="text-5xl font-black text-emerald-500">{Object.keys(teamSubmissions).length}</p>
+           <p className="text-sm font-bold text-slate-400 mt-2">/ {maxTeams}팀</p>
         </div>
       </div>
     </div>
