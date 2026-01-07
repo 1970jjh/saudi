@@ -5,7 +5,7 @@ import { COMPETITOR_DATA, KOREA_FIXED_DATA, PRICE_SCORE_MAPPING, MISSION_SLIDES,
 import { StepIndicator } from './components/StepIndicator';
 import { getStrategyFeedback } from './services/geminiService';
 
-type AdminSubView = 'dashboard' | 'learners';
+type AdminSubView = 'dashboard' | 'submissions';
 
 const CORRECT_ANSWERS = {
   userPrice: 663,
@@ -662,40 +662,6 @@ const App: React.FC = () => {
            </div>
         </div>
 
-        <div className="iso-card p-12">
-           <h3 className="font-black text-xl text-slate-900 mb-6 tracking-tight flex items-center gap-3">
-             <span className="w-10 h-10 bg-emerald-50 rounded-xl flex items-center justify-center text-lg">📊</span>
-             팀별 제출 현황
-             <span className="ml-auto text-sm font-bold text-emerald-500">{Object.keys(teamSubmissions).length} / {maxTeams}팀 제출</span>
-           </h3>
-           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-             {Array.from({ length: maxTeams }).map((_, i) => {
-               const teamNum = i + 1;
-               const submission = teamSubmissions[teamNum];
-               return (
-                 <div key={teamNum} className={`p-4 rounded-[20px] border-2 transition-all ${submission ? 'bg-emerald-50 border-emerald-200' : 'bg-slate-50 border-slate-100'}`}>
-                   <div className="flex items-center justify-between mb-2">
-                     <span className="font-black text-lg text-slate-900">{teamNum}조</span>
-                     {submission ? (
-                       <span className="w-3 h-3 bg-emerald-500 rounded-full animate-pulse" />
-                     ) : (
-                       <span className="w-3 h-3 bg-slate-300 rounded-full" />
-                     )}
-                   </div>
-                   {submission ? (
-                     <div className="space-y-1">
-                       <p className="text-[10px] font-bold text-slate-500">{submission.name}</p>
-                       <p className="text-sm font-black text-emerald-600">${submission.price}M</p>
-                       <p className="text-[10px] font-bold text-slate-400">예상수익: ${submission.profit}M</p>
-                     </div>
-                   ) : (
-                     <p className="text-[11px] font-bold text-slate-400">대기 중...</p>
-                   )}
-                 </div>
-               );
-             })}
-           </div>
-        </div>
       </div>
       
       <div className="space-y-10">
@@ -717,6 +683,55 @@ const App: React.FC = () => {
     </div>
   );
 
+  const renderAdminSubmissions = () => (
+    <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
+      <div className="iso-card p-12 bg-white relative overflow-hidden">
+        <div className="absolute top-0 left-0 w-full h-2 bg-emerald-500" />
+        <div className="flex items-center justify-between mb-10">
+          <h3 className="font-black text-2xl text-slate-900 tracking-tight flex items-center gap-3">
+            <span className="w-10 h-10 bg-emerald-50 rounded-xl flex items-center justify-center text-lg">📊</span>
+            팀별 제출 현황
+          </h3>
+          <div className="flex items-center gap-4">
+            <span className="text-lg font-bold text-emerald-500">{Object.keys(teamSubmissions).length} / {maxTeams}팀 제출</span>
+            <div className={`px-4 py-2 rounded-full text-sm font-black ${Object.keys(teamSubmissions).length === maxTeams ? 'bg-emerald-500 text-white' : 'bg-slate-100 text-slate-400'}`}>
+              {Object.keys(teamSubmissions).length === maxTeams ? '✓ 전원 제출 완료' : '제출 대기 중...'}
+            </div>
+          </div>
+        </div>
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-4">
+          {Array.from({ length: maxTeams }).map((_, i) => {
+            const teamNum = i + 1;
+            const submission = teamSubmissions[teamNum];
+            return (
+              <div key={teamNum} className={`p-5 rounded-[24px] border-2 transition-all ${submission ? 'bg-emerald-50 border-emerald-200 shadow-lg shadow-emerald-100/50' : 'bg-slate-50 border-slate-100'}`}>
+                <div className="flex items-center justify-between mb-3">
+                  <span className="font-black text-xl text-slate-900">{teamNum}조</span>
+                  {submission ? (
+                    <span className="w-4 h-4 bg-emerald-500 rounded-full animate-pulse" />
+                  ) : (
+                    <span className="w-4 h-4 bg-slate-300 rounded-full" />
+                  )}
+                </div>
+                {submission ? (
+                  <div className="space-y-2">
+                    <p className="text-xs font-bold text-slate-500 truncate">{submission.name}</p>
+                    <p className="text-xl font-black text-emerald-600">${submission.price}M</p>
+                    <p className="text-xs font-bold text-slate-400">예상수익: ${submission.profit}M</p>
+                  </div>
+                ) : (
+                  <div className="py-4">
+                    <p className="text-sm font-bold text-slate-400">대기 중...</p>
+                  </div>
+                )}
+              </div>
+            );
+          })}
+        </div>
+      </div>
+    </div>
+  );
+
   const renderAdmin = () => (
     <div className="flex h-screen bg-slate-50 animate-in fade-in duration-700">
       <aside className="w-80 bg-white p-12 hidden lg:flex flex-col border-r border-slate-200/60 shadow-sm">
@@ -724,26 +739,43 @@ const App: React.FC = () => {
           <div className="w-12 h-12 bg-saudi-green rounded-2xl flex items-center justify-center text-2xl shadow-xl shadow-emerald-100">🇸🇦</div>
           <h1 className="text-2xl font-black text-slate-900 tracking-tight">HQ Control</h1>
         </div>
-        <nav className="space-y-4 flex-1">
-          <button onClick={() => setAdminSubView('dashboard')} className={`w-full text-left p-5 rounded-[20px] font-black text-sm tracking-tight border transition-all ${adminSubView === 'dashboard' ? 'bg-emerald-50 text-emerald-600 border-emerald-100/50' : 'text-slate-300 border-transparent hover:bg-slate-50'}`}>대시보드</button>
-          <button 
-            onClick={() => { setRole('USER'); setStep(AppStep.TEAM_SELECTION); }} 
-            className="w-full text-left p-5 hover:bg-slate-50 text-slate-400 rounded-[20px] font-black text-sm tracking-tight flex items-center gap-3 mt-auto border-t border-slate-50 pt-8 transition-colors"
-          >
-            <span className="text-lg">📱</span> 
-            <span>학습자 모드 전환</span>
+        <nav className="space-y-3 flex-1">
+          <button onClick={() => setAdminSubView('dashboard')} className={`w-full text-left p-5 rounded-[20px] font-black text-sm tracking-tight border transition-all flex items-center gap-3 ${adminSubView === 'dashboard' ? 'bg-emerald-50 text-emerald-600 border-emerald-100/50' : 'text-slate-400 border-transparent hover:bg-slate-50'}`}>
+            <span className="text-lg">⚙️</span>
+            <span>과정 개설</span>
           </button>
+          <button onClick={() => setAdminSubView('submissions')} className={`w-full text-left p-5 rounded-[20px] font-black text-sm tracking-tight border transition-all flex items-center gap-3 ${adminSubView === 'submissions' ? 'bg-emerald-50 text-emerald-600 border-emerald-100/50' : 'text-slate-400 border-transparent hover:bg-slate-50'}`}>
+            <span className="text-lg">📊</span>
+            <span>팀별 제출 현황</span>
+            {Object.keys(teamSubmissions).length > 0 && (
+              <span className="ml-auto bg-emerald-500 text-white text-[10px] font-black px-2 py-0.5 rounded-full">{Object.keys(teamSubmissions).length}</span>
+            )}
+          </button>
+          <div className="border-t border-slate-100 pt-4 mt-4">
+            <button
+              onClick={() => { setRole('USER'); setStep(AppStep.TEAM_SELECTION); }}
+              className="w-full text-left p-5 hover:bg-slate-50 text-slate-400 rounded-[20px] font-black text-sm tracking-tight flex items-center gap-3 transition-colors"
+            >
+              <span className="text-lg">📱</span>
+              <span>학습자 모드 전환</span>
+            </button>
+          </div>
         </nav>
         <button onClick={() => { setRole(null); setStep(AppStep.SELECT_ROLE); }} className="w-full text-left p-5 text-red-400 font-black text-sm">로그아웃</button>
       </aside>
       <main className="flex-1 p-16 overflow-y-auto no-scrollbar">
         <header className="mb-16 flex justify-between items-end">
           <div>
-            <h2 className="text-5xl font-black text-slate-900 tracking-tighter mb-3">TFT 본부 제어실</h2>
-            <p className="text-slate-400 font-bold text-sm uppercase tracking-widest">Global Session & Real-time Synchronization</p>
+            <h2 className="text-5xl font-black text-slate-900 tracking-tighter mb-3">
+              {adminSubView === 'dashboard' ? '과정 개설' : '팀별 제출 현황'}
+            </h2>
+            <p className="text-slate-400 font-bold text-sm uppercase tracking-widest">
+              {adminSubView === 'dashboard' ? 'Session Setup & Control' : 'Real-time Team Submissions'}
+            </p>
           </div>
         </header>
         {adminSubView === 'dashboard' && renderAdminDashboard()}
+        {adminSubView === 'submissions' && renderAdminSubmissions()}
       </main>
     </div>
   );
