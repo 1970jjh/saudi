@@ -402,7 +402,7 @@ const App: React.FC = () => {
         <div className="space-y-4">
           {COMPETITOR_DETAILS.map(comp => (
             <div key={comp.country} className="p-4 bg-white rounded-[24px] border border-slate-100 shadow-sm relative overflow-hidden group">
-              <div className="absolute top-3 right-3 w-10 h-10 bg-slate-100 rounded-full flex items-center justify-center shadow-inner overflow-hidden"><img src={getCountryIcon(comp.country)} alt="" className="w-7 h-7 object-contain" /></div>
+              <div className="absolute top-3 right-3 w-11 h-11 rounded-full overflow-hidden shadow-md"><img src={getCountryIcon(comp.country)} alt="" className="w-full h-full object-cover" /></div>
               <div className="mb-3">
                 <span className="font-black text-slate-900 text-xl tracking-tight leading-none">{getCountryDisplayName(comp.country)}</span>
               </div>
