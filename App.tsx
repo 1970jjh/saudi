@@ -482,38 +482,33 @@ const App: React.FC = () => {
     }
 
     return (
-      <div className="flex flex-col h-full animate-slide-up p-6">
-        <div className="iso-card p-7 flex-1 overflow-y-auto no-scrollbar">
-          <div className="mb-6 flex items-center gap-3">
-             <div className="w-10 h-10 bg-emerald-500 rounded-xl flex items-center justify-center text-xl shadow-xl">🎯</div>
-             <h2 className="text-xl font-black text-slate-900 tracking-tight">최종 제안서 작성</h2>
+      <div className="flex flex-col h-full animate-slide-up p-4">
+        <div className="iso-card p-4 flex-1 overflow-y-auto no-scrollbar">
+          <div className="mb-4 flex items-center gap-2">
+             <div className="w-8 h-8 bg-emerald-500 rounded-lg flex items-center justify-center text-lg shadow-lg">🎯</div>
+             <h2 className="text-lg font-black text-slate-900 tracking-tight">최종 제안서 작성</h2>
           </div>
-          <div className="space-y-8">
-            <div className="bg-slate-50 rounded-[32px] p-6 border border-slate-100">
-              <div className="space-y-6">
-                <div className="space-y-2">
-                  <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest px-1">최종 제안가 (백만 달러)</label>
-                  <input type="number" value={userPrice} onChange={(e) => setUserPrice(e.target.value)} placeholder="" className="w-full bg-white border-2 border-transparent focus:border-emerald-500/30 rounded-2xl p-4 font-black text-slate-900 focus:outline-none transition-all shadow-sm text-2xl" />
+          <div className="space-y-4">
+            <div className="bg-slate-50 rounded-[20px] p-4 border border-slate-100">
+              <div className="space-y-3">
+                <div className="space-y-1">
+                  <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest px-1">최종 제안가 (백만 달러)</label>
+                  <input type="number" value={userPrice} onChange={(e) => setUserPrice(e.target.value)} placeholder="" className="w-full bg-white border-2 border-transparent focus:border-emerald-500/30 rounded-xl p-3 font-black text-slate-900 focus:outline-none transition-all shadow-sm text-xl" />
                 </div>
-                <div className="space-y-2">
-                  <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest px-1">예상 이익 (백만 달러)</label>
-                  <input type="number" value={expectedProfit} onChange={(e) => setExpectedProfit(e.target.value)} placeholder="" className="w-full bg-white border-2 border-transparent focus:border-emerald-500/30 rounded-2xl p-4 font-black text-emerald-600 focus:outline-none transition-all shadow-sm text-2xl" />
+                <div className="space-y-1">
+                  <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest px-1">예상 이익 (백만 달러)</label>
+                  <input type="number" value={expectedProfit} onChange={(e) => setExpectedProfit(e.target.value)} placeholder="" className="w-full bg-white border-2 border-transparent focus:border-emerald-500/30 rounded-xl p-3 font-black text-emerald-600 focus:outline-none transition-all shadow-sm text-xl" />
                 </div>
               </div>
             </div>
-            <div className="space-y-4">
-              <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest px-2">국가별 입찰 최종 점수 기록</p>
-              <div className="grid grid-cols-1 gap-3">
+            <div className="space-y-2">
+              <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest px-1">국가별 입찰 최종 점수 기록</p>
+              <div className="grid grid-cols-2 gap-2">
                 {(['USA', 'Germany', 'China', 'Korea'] as const).map(country => (
-                  <div key={country} className="flex items-center gap-4 bg-white p-4 rounded-[24px] border border-slate-100 shadow-sm">
-                    <div className="flex items-center gap-3 flex-1">
-                      <span className="text-3xl">{getCountryIcon(country)}</span>
-                      <span className="font-black text-slate-900 text-sm tracking-tight">{getCountryDisplayName(country)}</span>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <input type="number" value={manualScores[country]} onChange={(e) => setManualScores(prev => ({ ...prev, [country]: e.target.value }))} placeholder="" className="w-20 bg-slate-50 border-transparent rounded-xl p-3 text-right font-black text-slate-900 focus:outline-none focus:ring-2 focus:ring-emerald-500/20 transition-all" />
-                      <span className="text-[10px] font-black text-slate-400">점</span>
-                    </div>
+                  <div key={country} className="flex items-center gap-2 bg-white p-2.5 rounded-[16px] border border-slate-100 shadow-sm">
+                    <span className="text-xl">{getCountryIcon(country)}</span>
+                    <span className="font-black text-slate-900 text-[11px] tracking-tight flex-1">{getCountryDisplayName(country)}</span>
+                    <input type="number" value={manualScores[country]} onChange={(e) => setManualScores(prev => ({ ...prev, [country]: e.target.value }))} placeholder="" className="w-14 bg-slate-50 border-transparent rounded-lg p-2 text-right font-black text-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500/20 transition-all" />
                   </div>
                 ))}
               </div>
