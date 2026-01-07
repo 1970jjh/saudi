@@ -505,10 +505,13 @@ const App: React.FC = () => {
               <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest px-1">국가별 입찰 최종 점수 기록</p>
               <div className="grid grid-cols-2 gap-2">
                 {(['USA', 'Germany', 'China', 'Korea'] as const).map(country => (
-                  <div key={country} className="flex items-center gap-2 bg-white p-2.5 rounded-[16px] border border-slate-100 shadow-sm">
+                  <div key={country} className="flex items-center gap-1.5 bg-white p-2.5 rounded-[16px] border border-slate-100 shadow-sm">
                     <div className="w-6 h-6 rounded-full overflow-hidden shrink-0"><img src={getCountryIcon(country)} alt="" className="w-full h-full object-cover" /></div>
                     <span className="font-black text-slate-900 text-[11px] tracking-tight flex-1">{getCountryDisplayName(country)}</span>
-                    <input type="number" value={manualScores[country]} onChange={(e) => setManualScores(prev => ({ ...prev, [country]: e.target.value }))} placeholder="" className="w-14 bg-slate-50 border-transparent rounded-lg p-2 text-right font-black text-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500/20 transition-all" />
+                    <div className="flex items-center gap-0.5">
+                      <input type="number" value={manualScores[country]} onChange={(e) => setManualScores(prev => ({ ...prev, [country]: e.target.value }))} placeholder="" className="w-12 bg-slate-50 border-transparent rounded-lg p-2 text-right font-black text-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500/20 transition-all" />
+                      <span className="text-[10px] font-bold text-slate-400">점</span>
+                    </div>
                   </div>
                 ))}
               </div>
