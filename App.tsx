@@ -780,13 +780,13 @@ const App: React.FC = () => {
     </div>
   );
 
-  if (step === AppStep.SELECT_ROLE) return <div className="min-h-screen flex items-center justify-center p-6"><div className="mobile-frame animate-slide-up">{renderRoleSelection()}</div></div>;
-  if (step === AppStep.ADMIN_LOGIN) return <div className="min-h-screen flex items-center justify-center p-6"><div className="mobile-frame animate-slide-up">{renderAdminLogin()}</div></div>;
+  if (step === AppStep.SELECT_ROLE) return <div className="min-h-screen flex items-center justify-center sm:p-6"><div className="mobile-frame animate-slide-up">{renderRoleSelection()}</div></div>;
+  if (step === AppStep.ADMIN_LOGIN) return <div className="min-h-screen flex items-center justify-center sm:p-6"><div className="mobile-frame animate-slide-up">{renderAdminLogin()}</div></div>;
 
   return (
     <div className="min-h-screen">
       {role === 'USER' ? (
-        <div className="flex flex-col items-center justify-center min-h-screen p-6">
+        <div className="flex flex-col items-center justify-center min-h-screen sm:p-6">
           <div className="mobile-frame animate-slide-up">
             <div className="flex items-center justify-between mt-6 mb-4 mx-6 px-4 py-3 bg-white/80 backdrop-blur-xl rounded-[24px] border border-white/50 shadow-xl shadow-slate-200/50 shrink-0 z-10">
               <div className="flex items-center gap-3">
