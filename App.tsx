@@ -399,8 +399,11 @@ const App: React.FC = () => {
     <div className="flex flex-col h-full animate-slide-up p-4">
       <div className="iso-card p-5 flex-1 flex flex-col overflow-y-auto no-scrollbar">
         <div className="flex items-center justify-between mb-4 border-b border-slate-50 pb-4">
-          <h2 className="text-xl font-black text-slate-900 italic tracking-tight">작전 브리핑</h2>
+          <h2 className="text-xl font-black text-slate-900 italic tracking-tight">사우디 TFT 입찰 정보</h2>
           <div className="bg-emerald-500 text-white px-2.5 py-1 rounded-full text-[8px] font-black shadow-lg">{selectedTeam}조</div>
+        </div>
+        <div className="mb-4 rounded-2xl overflow-hidden shadow-md border border-slate-100">
+          <img src="https://i.ibb.co/LDsYtdfX/Infographic-3.jpg" alt="입찰 정보 인포그래픽" className="w-full h-auto object-cover" />
         </div>
         <div className="space-y-4">
           {MISSION_SLIDES.map((slide, idx) => (
