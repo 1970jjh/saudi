@@ -402,8 +402,8 @@ const App: React.FC = () => {
           <h2 className="text-xl font-black text-slate-900 italic tracking-tight">사우디 TFT 입찰 정보</h2>
           <div className="bg-emerald-500 text-white px-2.5 py-1 rounded-full text-[8px] font-black shadow-lg">{selectedTeam}조</div>
         </div>
-        <div className="mb-4 rounded-2xl overflow-hidden shadow-md border border-slate-100">
-          <img src="https://i.ibb.co/LDsYtdfX/Infographic-3.jpg" alt="입찰 정보 인포그래픽" className="w-full h-auto object-cover" />
+        <div className="mb-4 rounded-2xl overflow-hidden shadow-md border border-slate-100 shrink-0">
+          <img src="https://i.ibb.co/LDsYtdfX/Infographic-3.jpg" alt="입찰 정보 인포그래픽" className="w-full h-auto" />
         </div>
         <div className="space-y-4">
           {MISSION_SLIDES.map((slide, idx) => (
