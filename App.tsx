@@ -4,6 +4,17 @@ import { AppStep, UserRole, BiddingSimulationResult } from './types';
 import { COMPETITOR_DATA, KOREA_FIXED_DATA, PRICE_SCORE_MAPPING, MISSION_SLIDES, COMPETITOR_DETAILS, INFO_CARD_IMAGES } from './constants';
 import { StepIndicator } from './components/StepIndicator';
 import { getStrategyFeedback } from './services/geminiService';
+import {
+  subscribeToSession,
+  subscribeToSubmissions,
+  subscribeToTeamNotes,
+  revealResults,
+  resetSession,
+  clearAllSubmissions,
+  submitTeamResult,
+  saveTeamNotes,
+  updateSessionState
+} from './services/firestoreService';
 
 type AdminSubView = 'dashboard' | 'submissions';
 
@@ -59,46 +70,36 @@ const App: React.FC = () => {
   // Admin: Team Submissions Tracking
   const [teamSubmissions, setTeamSubmissions] = useState<Record<number, { name: string; price: string; profit: string; timestamp: number }>>({});
 
-  // Global Session Sync (Reveal Results & Team Submissions)
+  // Global Session Sync via Firestore
   useEffect(() => {
-    const sessionChannel = new BroadcastChannel('global_session_sync');
-    sessionChannel.onmessage = (event) => {
-      if (event.data.type === 'REVEAL_RESULTS') {
-        setIsResultsRevealed(true);
-      } else if (event.data.type === 'RESET_RESULTS') {
-        setIsResultsRevealed(false);
-        setHasSubmitted(false);
-        setTeamSubmissions({});
-      } else if (event.data.type === 'TEAM_SUBMISSION') {
-        setTeamSubmissions(prev => ({
-          ...prev,
-          [event.data.team]: {
-            name: event.data.name,
-            price: event.data.price,
-            profit: event.data.profit,
-            timestamp: event.data.timestamp
-          }
-        }));
+    const unsubscribeSession = subscribeToSession((state) => {
+      if (state) {
+        setIsResultsRevealed(state.isResultsRevealed);
+        if (state.sessionName) setSessionName(state.sessionName);
+        if (state.maxTeams) setMaxTeams(state.maxTeams);
+        if (state.isSessionActive !== undefined) setIsSessionActive(state.isSessionActive);
       }
+    });
+
+    const unsubscribeSubmissions = subscribeToSubmissions((submissions) => {
+      setTeamSubmissions(submissions);
+    });
+
+    return () => {
+      unsubscribeSession();
+      unsubscribeSubmissions();
     };
-    return () => sessionChannel.close();
   }, []);
 
-  // Team-specific sync for notes
+  // Team-specific sync for notes via Firestore
   useEffect(() => {
     if (selectedTeam) {
-      const savedNotes = localStorage.getItem(`team_${selectedTeam}_notes`);
-      if (savedNotes) setNotes(JSON.parse(savedNotes));
-
-      const channel = new BroadcastChannel(`team_${selectedTeam}_sync`);
-      channel.onmessage = (event) => {
-        if (event.data.type === 'SYNC_NOTES') {
-          setNotes(event.data.notes);
-          setIsSyncing(true);
-          setTimeout(() => setIsSyncing(false), 500);
-        }
-      };
-      return () => channel.close();
+      const unsubscribe = subscribeToTeamNotes(selectedTeam, (notesData) => {
+        setNotes(notesData);
+        setIsSyncing(true);
+        setTimeout(() => setIsSyncing(false), 500);
+      });
+      return () => unsubscribe();
     }
   }, [selectedTeam]);
 
@@ -109,24 +110,23 @@ const App: React.FC = () => {
     setNotes(newNotes);
     setIsSyncing(true);
     if (syncTimeoutRef.current) window.clearTimeout(syncTimeoutRef.current);
-    syncTimeoutRef.current = window.setTimeout(() => {
-      const filteredNotes = newNotes.filter(n => n.trim() !== '' || n === newNotes[newNotes.length - 1]);
-      localStorage.setItem(`team_${selectedTeam}_notes`, JSON.stringify(filteredNotes));
-      const channel = new BroadcastChannel(`team_${selectedTeam}_sync`);
-      channel.postMessage({ type: 'SYNC_NOTES', notes: newNotes });
-      channel.close();
+    syncTimeoutRef.current = window.setTimeout(async () => {
+      if (selectedTeam) {
+        await saveTeamNotes(selectedTeam, newNotes);
+      }
       setIsSyncing(false);
     }, 800);
   };
 
-  const removeNote = (index: number) => {
-    if (notes.length <= 1) { setNotes(['']); return; }
+  const removeNote = async (index: number) => {
+    if (notes.length <= 1) {
+      setNotes(['']);
+      if (selectedTeam) await saveTeamNotes(selectedTeam, ['']);
+      return;
+    }
     const newNotes = notes.filter((_, i) => i !== index);
     setNotes(newNotes);
-    localStorage.setItem(`team_${selectedTeam}_notes`, JSON.stringify(newNotes));
-    const channel = new BroadcastChannel(`team_${selectedTeam}_sync`);
-    channel.postMessage({ type: 'SYNC_NOTES', notes: newNotes });
-    channel.close();
+    if (selectedTeam) await saveTeamNotes(selectedTeam, newNotes);
   };
 
   const calculateRanks = useCallback((koreaPrice: number) => {
@@ -178,36 +178,29 @@ const App: React.FC = () => {
     }
   };
 
-  const triggerReveal = () => {
-    const sessionChannel = new BroadcastChannel('global_session_sync');
-    sessionChannel.postMessage({ type: 'REVEAL_RESULTS' });
+  const triggerReveal = async () => {
+    await revealResults();
     setIsResultsRevealed(true);
-    sessionChannel.close();
   };
 
-  const triggerReset = () => {
-    const sessionChannel = new BroadcastChannel('global_session_sync');
-    sessionChannel.postMessage({ type: 'RESET_RESULTS' });
+  const triggerReset = async () => {
+    await resetSession();
+    await clearAllSubmissions(maxTeams);
     setIsResultsRevealed(false);
-    sessionChannel.close();
+    setHasSubmitted(false);
   };
 
   const handleFinalSubmit = async () => {
     setLoading(true);
     setHasSubmitted(true);
 
-    // Broadcast submission to admin
+    // Save submission to Firestore
     if (selectedTeam) {
-      const sessionChannel = new BroadcastChannel('global_session_sync');
-      sessionChannel.postMessage({
-        type: 'TEAM_SUBMISSION',
-        team: selectedTeam,
+      await submitTeamResult(selectedTeam, {
         name: studentName,
         price: userPrice,
-        profit: expectedProfit,
-        timestamp: Date.now()
+        profit: expectedProfit
       });
-      sessionChannel.close();
     }
 
     const feedback = await getStrategyFeedback(results, Number(expectedProfit));
@@ -656,11 +649,11 @@ const App: React.FC = () => {
            <div className="space-y-6">
              <div className="space-y-3">
                <label className="text-[11px] font-bold text-slate-400 uppercase tracking-widest px-1">세션 이름</label>
-               <input type="text" value={sessionName} onChange={(e) => setSessionName(e.target.value)} placeholder="예) 삼성전자 신입사원 과정" className="w-full bg-slate-50 rounded-[24px] p-6 text-2xl font-black text-slate-900 border-2 border-transparent focus:border-emerald-500/20 transition-all outline-none" />
+               <input type="text" value={sessionName} onChange={(e) => setSessionName(e.target.value)} onBlur={() => updateSessionState({ sessionName })} placeholder="예) 삼성전자 신입사원 과정" className="w-full bg-slate-50 rounded-[24px] p-6 text-2xl font-black text-slate-900 border-2 border-transparent focus:border-emerald-500/20 transition-all outline-none" />
              </div>
              <div className="flex gap-4">
-               <select value={maxTeams} onChange={(e) => setMaxTeams(Number(e.target.value))} className="flex-1 bg-slate-50 rounded-[24px] p-5 text-xl font-black text-slate-900 border-2 border-transparent outline-none appearance-none">{[...Array(24)].map((_, i) => <option key={i} value={i + 1}>{i + 1}개 팀 운영</option>)}</select>
-               <button onClick={() => setIsSessionActive(!isSessionActive)} className={`flex-[2] py-5 rounded-[24px] font-black uppercase tracking-widest transition-all ${isSessionActive ? 'bg-red-50 text-red-500' : 'bg-emerald-500 text-white shadow-lg shadow-emerald-100'}`}>{isSessionActive ? '미션 중지' : '미션 시작'}</button>
+               <select value={maxTeams} onChange={(e) => { const val = Number(e.target.value); setMaxTeams(val); updateSessionState({ maxTeams: val }); }} className="flex-1 bg-slate-50 rounded-[24px] p-5 text-xl font-black text-slate-900 border-2 border-transparent outline-none appearance-none">{[...Array(24)].map((_, i) => <option key={i} value={i + 1}>{i + 1}개 팀 운영</option>)}</select>
+               <button onClick={() => { const newVal = !isSessionActive; setIsSessionActive(newVal); updateSessionState({ isSessionActive: newVal }); }} className={`flex-[2] py-5 rounded-[24px] font-black uppercase tracking-widest transition-all ${isSessionActive ? 'bg-red-50 text-red-500' : 'bg-emerald-500 text-white shadow-lg shadow-emerald-100'}`}>{isSessionActive ? '미션 중지' : '미션 시작'}</button>
              </div>
            </div>
         </div>
