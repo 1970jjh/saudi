@@ -78,7 +78,7 @@ const App: React.FC = () => {
   const [loading, setLoading] = useState<boolean>(false);
 
   // Admin: Team Submissions Tracking
-  const [teamSubmissions, setTeamSubmissions] = useState<Record<number, { name: string; price: string; profit: string; timestamp: number }>>({});
+  const [teamSubmissions, setTeamSubmissions] = useState<Record<number, { name: string; price: string; profit: string; scores: { USA: string; Germany: string; China: string; Korea: string }; timestamp: number }>>({});
 
   // Subscribe to active sessions list (for learners)
   useEffect(() => {
@@ -249,7 +249,8 @@ const App: React.FC = () => {
       await submitTeamResult(currentSessionId, selectedTeam, {
         name: studentName,
         price: userPrice,
-        profit: expectedProfit
+        profit: expectedProfit,
+        scores: manualScores as { USA: string; Germany: string; China: string; Korea: string }
       });
     }
 
@@ -851,6 +852,17 @@ const App: React.FC = () => {
                     <p className="text-xs font-bold text-slate-500 truncate">{submission.name}</p>
                     <p className="text-xl font-black text-emerald-600">${submission.price}M</p>
                     <p className="text-xs font-bold text-slate-400">예상수익: ${submission.profit}M</p>
+                    {submission.scores && (
+                      <div className="pt-2 mt-2 border-t border-emerald-200 space-y-1">
+                        <p className="text-[9px] font-black text-slate-400 uppercase">국가별 점수</p>
+                        <div className="grid grid-cols-2 gap-1 text-[10px]">
+                          <span className="text-slate-500">🇺🇸 {submission.scores.USA || '-'}</span>
+                          <span className="text-slate-500">🇩🇪 {submission.scores.Germany || '-'}</span>
+                          <span className="text-slate-500">🇨🇳 {submission.scores.China || '-'}</span>
+                          <span className="text-slate-500">🇰🇷 {submission.scores.Korea || '-'}</span>
+                        </div>
+                      </div>
+                    )}
                   </div>
                 ) : (
                   <div className="py-4">
@@ -870,7 +882,7 @@ const App: React.FC = () => {
       <aside className="w-80 bg-white p-12 hidden lg:flex flex-col border-r border-slate-200/60 shadow-sm">
         <div className="mb-14 flex items-center gap-4">
           <div className="w-12 h-12 bg-saudi-green rounded-2xl flex items-center justify-center text-2xl shadow-xl shadow-emerald-100">🇸🇦</div>
-          <h1 className="text-2xl font-black text-slate-900 tracking-tight">HQ Control</h1>
+          <h1 className="text-xl font-black text-slate-900 tracking-tight">사우디 관리자 모드</h1>
         </div>
         <nav className="space-y-3 flex-1">
           <button onClick={() => setAdminSubView('dashboard')} className={`w-full text-left p-5 rounded-[20px] font-black text-sm tracking-tight border transition-all flex items-center gap-3 ${adminSubView === 'dashboard' ? 'bg-emerald-50 text-emerald-600 border-emerald-100/50' : 'text-slate-400 border-transparent hover:bg-slate-50'}`}>

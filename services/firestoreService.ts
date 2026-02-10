@@ -29,6 +29,12 @@ export interface TeamSubmission {
   name: string;
   price: string;
   profit: string;
+  scores: {
+    USA: string;
+    Germany: string;
+    China: string;
+    Korea: string;
+  };
   timestamp: number;
 }
 
