@@ -4,6 +4,22 @@ import { AppStep, UserRole, BiddingSimulationResult } from './types';
 import { COMPETITOR_DATA, KOREA_FIXED_DATA, PRICE_SCORE_MAPPING, MISSION_SLIDES, COMPETITOR_DETAILS, INFO_CARD_IMAGES } from './constants';
 import { StepIndicator } from './components/StepIndicator';
 import { getStrategyFeedback } from './services/geminiService';
+import {
+  subscribeToSession,
+  subscribeToActiveSessions,
+  subscribeToAllSessions,
+  subscribeToSubmissions,
+  subscribeToTeamNotes,
+  createSession,
+  revealResults,
+  resetSessionResults,
+  clearAllSubmissions,
+  submitTeamResult,
+  saveTeamNotes,
+  updateSessionState,
+  deleteSession,
+  SessionState
+} from './services/firestoreService';
 
 type AdminSubView = 'dashboard' | 'submissions';
 
@@ -26,10 +42,15 @@ const App: React.FC = () => {
   const [adminSubView, setAdminSubView] = useState<AdminSubView>('dashboard');
 
   // Session States
+  const [currentSessionId, setCurrentSessionId] = useState<string | null>(null);
+  const [availableSessions, setAvailableSessions] = useState<SessionState[]>([]);
+  const [allSessions, setAllSessions] = useState<SessionState[]>([]);
   const [sessionName, setSessionName] = useState<string>('');
   const [maxTeams, setMaxTeams] = useState<number>(12);
   const [isSessionActive, setIsSessionActive] = useState<boolean>(false);
   const [isResultsRevealed, setIsResultsRevealed] = useState<boolean>(false);
+  const [newSessionName, setNewSessionName] = useState<string>('');
+  const [newSessionTeams, setNewSessionTeams] = useState<number>(12);
 
   // Student States
   const [selectedTeam, setSelectedTeam] = useState<number | null>(null);
@@ -59,48 +80,58 @@ const App: React.FC = () => {
   // Admin: Team Submissions Tracking
   const [teamSubmissions, setTeamSubmissions] = useState<Record<number, { name: string; price: string; profit: string; timestamp: number }>>({});
 
-  // Global Session Sync (Reveal Results & Team Submissions)
+  // Subscribe to active sessions list (for learners)
   useEffect(() => {
-    const sessionChannel = new BroadcastChannel('global_session_sync');
-    sessionChannel.onmessage = (event) => {
-      if (event.data.type === 'REVEAL_RESULTS') {
-        setIsResultsRevealed(true);
-      } else if (event.data.type === 'RESET_RESULTS') {
-        setIsResultsRevealed(false);
-        setHasSubmitted(false);
-        setTeamSubmissions({});
-      } else if (event.data.type === 'TEAM_SUBMISSION') {
-        setTeamSubmissions(prev => ({
-          ...prev,
-          [event.data.team]: {
-            name: event.data.name,
-            price: event.data.price,
-            profit: event.data.profit,
-            timestamp: event.data.timestamp
-          }
-        }));
-      }
-    };
-    return () => sessionChannel.close();
+    const unsubscribe = subscribeToActiveSessions((sessions) => {
+      setAvailableSessions(sessions);
+    });
+    return () => unsubscribe();
   }, []);
 
-  // Team-specific sync for notes
+  // Subscribe to all sessions (for admin)
   useEffect(() => {
-    if (selectedTeam) {
-      const savedNotes = localStorage.getItem(`team_${selectedTeam}_notes`);
-      if (savedNotes) setNotes(JSON.parse(savedNotes));
-
-      const channel = new BroadcastChannel(`team_${selectedTeam}_sync`);
-      channel.onmessage = (event) => {
-        if (event.data.type === 'SYNC_NOTES') {
-          setNotes(event.data.notes);
-          setIsSyncing(true);
-          setTimeout(() => setIsSyncing(false), 500);
-        }
-      };
-      return () => channel.close();
+    if (role === 'ADMIN') {
+      const unsubscribe = subscribeToAllSessions((sessions) => {
+        setAllSessions(sessions);
+      });
+      return () => unsubscribe();
     }
-  }, [selectedTeam]);
+  }, [role]);
+
+  // Subscribe to current session state and submissions
+  useEffect(() => {
+    if (!currentSessionId) return;
+
+    const unsubscribeSession = subscribeToSession(currentSessionId, (state) => {
+      if (state) {
+        setIsResultsRevealed(state.isResultsRevealed);
+        setSessionName(state.sessionName);
+        setMaxTeams(state.maxTeams);
+        setIsSessionActive(state.isSessionActive);
+      }
+    });
+
+    const unsubscribeSubmissions = subscribeToSubmissions(currentSessionId, (submissions) => {
+      setTeamSubmissions(submissions);
+    });
+
+    return () => {
+      unsubscribeSession();
+      unsubscribeSubmissions();
+    };
+  }, [currentSessionId]);
+
+  // Team-specific sync for notes via Firestore
+  useEffect(() => {
+    if (selectedTeam && currentSessionId) {
+      const unsubscribe = subscribeToTeamNotes(currentSessionId, selectedTeam, (notesData) => {
+        setNotes(notesData);
+        setIsSyncing(true);
+        setTimeout(() => setIsSyncing(false), 500);
+      });
+      return () => unsubscribe();
+    }
+  }, [selectedTeam, currentSessionId]);
 
   const handleNoteChange = (index: number, value: string) => {
     const newNotes = [...notes];
@@ -109,24 +140,23 @@ const App: React.FC = () => {
     setNotes(newNotes);
     setIsSyncing(true);
     if (syncTimeoutRef.current) window.clearTimeout(syncTimeoutRef.current);
-    syncTimeoutRef.current = window.setTimeout(() => {
-      const filteredNotes = newNotes.filter(n => n.trim() !== '' || n === newNotes[newNotes.length - 1]);
-      localStorage.setItem(`team_${selectedTeam}_notes`, JSON.stringify(filteredNotes));
-      const channel = new BroadcastChannel(`team_${selectedTeam}_sync`);
-      channel.postMessage({ type: 'SYNC_NOTES', notes: newNotes });
-      channel.close();
+    syncTimeoutRef.current = window.setTimeout(async () => {
+      if (selectedTeam && currentSessionId) {
+        await saveTeamNotes(currentSessionId, selectedTeam, newNotes);
+      }
       setIsSyncing(false);
     }, 800);
   };
 
-  const removeNote = (index: number) => {
-    if (notes.length <= 1) { setNotes(['']); return; }
+  const removeNote = async (index: number) => {
+    if (notes.length <= 1) {
+      setNotes(['']);
+      if (selectedTeam && currentSessionId) await saveTeamNotes(currentSessionId, selectedTeam, ['']);
+      return;
+    }
     const newNotes = notes.filter((_, i) => i !== index);
     setNotes(newNotes);
-    localStorage.setItem(`team_${selectedTeam}_notes`, JSON.stringify(newNotes));
-    const channel = new BroadcastChannel(`team_${selectedTeam}_sync`);
-    channel.postMessage({ type: 'SYNC_NOTES', notes: newNotes });
-    channel.close();
+    if (selectedTeam && currentSessionId) await saveTeamNotes(currentSessionId, selectedTeam, newNotes);
   };
 
   const calculateRanks = useCallback((koreaPrice: number) => {
@@ -178,36 +208,49 @@ const App: React.FC = () => {
     }
   };
 
-  const triggerReveal = () => {
-    const sessionChannel = new BroadcastChannel('global_session_sync');
-    sessionChannel.postMessage({ type: 'REVEAL_RESULTS' });
+  const triggerReveal = async () => {
+    if (!currentSessionId) return;
+    await revealResults(currentSessionId);
     setIsResultsRevealed(true);
-    sessionChannel.close();
   };
 
-  const triggerReset = () => {
-    const sessionChannel = new BroadcastChannel('global_session_sync');
-    sessionChannel.postMessage({ type: 'RESET_RESULTS' });
+  const triggerReset = async () => {
+    if (!currentSessionId) return;
+    await resetSessionResults(currentSessionId);
+    await clearAllSubmissions(currentSessionId, maxTeams);
     setIsResultsRevealed(false);
-    sessionChannel.close();
+    setHasSubmitted(false);
+  };
+
+  const handleCreateSession = async () => {
+    if (!newSessionName.trim()) return;
+    const sessionId = await createSession(newSessionName, newSessionTeams);
+    setCurrentSessionId(sessionId);
+    setNewSessionName('');
+    setNewSessionTeams(12);
+  };
+
+  const handleSelectSession = (session: SessionState) => {
+    setCurrentSessionId(session.id);
+    setSessionName(session.sessionName);
+    setMaxTeams(session.maxTeams);
+    setIsResultsRevealed(session.isResultsRevealed);
+    if (role === 'USER') {
+      setStep(AppStep.TEAM_SELECTION);
+    }
   };
 
   const handleFinalSubmit = async () => {
     setLoading(true);
     setHasSubmitted(true);
 
-    // Broadcast submission to admin
-    if (selectedTeam) {
-      const sessionChannel = new BroadcastChannel('global_session_sync');
-      sessionChannel.postMessage({
-        type: 'TEAM_SUBMISSION',
-        team: selectedTeam,
+    // Save submission to Firestore
+    if (selectedTeam && currentSessionId) {
+      await submitTeamResult(currentSessionId, selectedTeam, {
         name: studentName,
         price: userPrice,
-        profit: expectedProfit,
-        timestamp: Date.now()
+        profit: expectedProfit
       });
-      sessionChannel.close();
     }
 
     const feedback = await getStrategyFeedback(results, Number(expectedProfit));
@@ -224,7 +267,8 @@ const App: React.FC = () => {
 
   const handleBack = () => {
     if (step === AppStep.INTRO) setStep(AppStep.TEAM_SELECTION);
-    else if (step === AppStep.TEAM_SELECTION) { setRole(null); setStep(AppStep.SELECT_ROLE); }
+    else if (step === AppStep.TEAM_SELECTION) setStep(AppStep.SESSION_SELECTION);
+    else if (step === AppStep.SESSION_SELECTION) { setRole(null); setStep(AppStep.SELECT_ROLE); }
     else if (step === AppStep.ANALYSIS) setStep(AppStep.INTRO);
     else if (step === AppStep.RECORDS) setStep(AppStep.ANALYSIS);
     else if (step === AppStep.SIMULATION) setStep(AppStep.RECORDS);
@@ -328,8 +372,8 @@ const App: React.FC = () => {
       <h1 className="text-5xl font-black text-slate-900 tracking-tighter text-center mb-1 leading-tight">Saudi TFT Mission</h1>
       <p className="text-slate-400 font-bold uppercase tracking-[0.4em] text-[8px] mb-12">Vision 2030</p>
       <div className="w-full space-y-4">
-        <button 
-          onClick={() => { setRole('USER'); setStep(AppStep.TEAM_SELECTION); }} 
+        <button
+          onClick={() => { setRole('USER'); setStep(AppStep.SESSION_SELECTION); }}
           className="w-full iso-card p-5 flex items-center group border-2 border-emerald-500 shadow-lg shadow-emerald-100/50"
         >
           <div className="w-14 h-14 bg-emerald-50 rounded-2xl flex items-center justify-center text-3xl mr-4 group-hover:scale-110 transition-transform">📱</div>
@@ -338,8 +382,8 @@ const App: React.FC = () => {
             <div className="text-[8px] font-bold text-slate-400 uppercase tracking-widest">Deploy Field Agent</div>
           </div>
         </button>
-        <button 
-          onClick={() => { setRole('ADMIN'); setStep(AppStep.ADMIN_LOGIN); }} 
+        <button
+          onClick={() => { setRole('ADMIN'); setStep(AppStep.ADMIN_LOGIN); }}
           className="w-full iso-card p-5 flex items-center group bg-slate-100 border-slate-200 shadow-none hover:bg-slate-200 transition-colors"
         >
           <div className="w-14 h-14 bg-white/60 rounded-2xl flex items-center justify-center text-3xl mr-4 group-hover:scale-110 transition-transform">⚙️</div>
@@ -348,6 +392,42 @@ const App: React.FC = () => {
             <div className="text-[8px] font-bold text-slate-400 uppercase tracking-widest">HQ Control Center</div>
           </div>
         </button>
+      </div>
+    </div>
+  );
+
+  const renderSessionSelection = () => (
+    <div className="flex flex-col h-full animate-slide-up p-6 overflow-y-auto no-scrollbar">
+      <div className="iso-card p-7 flex-1 flex flex-col">
+        <div className="mb-6">
+          <p className="text-[8px] font-black uppercase tracking-[0.4em] text-emerald-600 mb-1">과정 선택</p>
+          <h2 className="text-2xl font-black text-slate-900 tracking-tight leading-tight">참여할 세션을 선택하세요</h2>
+        </div>
+        <div className="flex-1 space-y-3 overflow-y-auto no-scrollbar">
+          {availableSessions.length === 0 ? (
+            <div className="flex flex-col items-center justify-center py-16 text-center">
+              <div className="w-20 h-20 bg-slate-100 rounded-[28px] flex items-center justify-center text-4xl mb-6">📭</div>
+              <p className="text-slate-400 font-bold text-sm mb-2">진행 중인 세션이 없습니다</p>
+              <p className="text-slate-300 text-xs">관리자가 과정을 개설할 때까지 기다려주세요</p>
+            </div>
+          ) : (
+            availableSessions.map((session) => (
+              <button
+                key={session.id}
+                onClick={() => handleSelectSession(session)}
+                className="w-full iso-card p-5 flex items-center group border-2 border-transparent hover:border-emerald-500 transition-all"
+              >
+                <div className="w-12 h-12 bg-emerald-50 rounded-xl flex items-center justify-center text-2xl mr-4 group-hover:scale-110 transition-transform">🎯</div>
+                <div className="text-left flex-1">
+                  <div className="font-bold text-base text-slate-900 leading-tight mb-1">{session.sessionName}</div>
+                  <div className="text-[10px] font-bold text-slate-400">{session.maxTeams}개 팀 운영</div>
+                </div>
+                <div className="w-3 h-3 bg-emerald-500 rounded-full animate-pulse" />
+              </button>
+            ))
+          )}
+        </div>
+        <button onClick={() => { setRole(null); setStep(AppStep.SELECT_ROLE); }} className="w-full py-4 rounded-2xl font-bold text-sm text-slate-400 mt-6 hover:bg-slate-50 transition-colors">뒤로가기</button>
       </div>
     </div>
   );
@@ -631,57 +711,107 @@ const App: React.FC = () => {
   const renderAdminDashboard = () => (
     <div className="grid grid-cols-1 xl:grid-cols-3 gap-10 animate-in fade-in slide-in-from-bottom-4 duration-500">
       <div className="xl:col-span-2 space-y-10">
+        {/* 새 세션 생성 */}
         <div className="iso-card p-12 bg-white relative overflow-hidden">
-          <div className="absolute top-0 left-0 w-full h-2 bg-slate-900" />
+          <div className="absolute top-0 left-0 w-full h-2 bg-emerald-500" />
           <h3 className="font-black text-2xl text-slate-900 mb-10 tracking-tight flex items-center gap-3">
-             <span className="w-10 h-10 bg-slate-50 rounded-xl flex items-center justify-center text-lg">📢</span>
-             전역 세션 컨트롤
+             <span className="w-10 h-10 bg-emerald-50 rounded-xl flex items-center justify-center text-lg">➕</span>
+             새 과정 개설
           </h3>
-          <div className="grid grid-cols-2 gap-6">
-            <button onClick={triggerReveal} disabled={isResultsRevealed} className={`flex flex-col items-center justify-center p-10 rounded-[40px] transition-all border-4 ${isResultsRevealed ? 'bg-slate-50 border-slate-100 cursor-not-allowed opacity-50' : 'bg-emerald-500 border-emerald-600 text-white shadow-2xl shadow-emerald-200 hover:scale-105 active:scale-95'}`}>
-               <span className="text-5xl mb-4">🏁</span>
-               <span className="text-xl font-black">결과 공개하기</span>
-               <p className="text-[10px] font-bold mt-2 opacity-80">모든 팀에게 수주 결과가 동시에 전송됩니다.</p>
-            </button>
-            <button onClick={triggerReset} className="flex flex-col items-center justify-center p-10 rounded-[40px] bg-white border-4 border-slate-100 text-slate-900 hover:bg-red-50 hover:border-red-100 hover:text-red-500 transition-all">
-               <span className="text-5xl mb-4">🔄</span>
-               <span className="text-xl font-black">세션 초기화</span>
-               <p className="text-[10px] font-bold mt-2 text-slate-400">모든 학습자의 제출 상태를 리셋합니다.</p>
-            </button>
+          <div className="space-y-6">
+            <div className="space-y-3">
+              <label className="text-[11px] font-bold text-slate-400 uppercase tracking-widest px-1">세션 이름</label>
+              <input type="text" value={newSessionName} onChange={(e) => setNewSessionName(e.target.value)} placeholder="예) 삼성전자 신입사원 과정" className="w-full bg-slate-50 rounded-[24px] p-6 text-2xl font-black text-slate-900 border-2 border-transparent focus:border-emerald-500/20 transition-all outline-none" />
+            </div>
+            <div className="flex gap-4">
+              <select value={newSessionTeams} onChange={(e) => setNewSessionTeams(Number(e.target.value))} className="flex-1 bg-slate-50 rounded-[24px] p-5 text-xl font-black text-slate-900 border-2 border-transparent outline-none appearance-none">{[...Array(24)].map((_, i) => <option key={i} value={i + 1}>{i + 1}개 팀 운영</option>)}</select>
+              <button onClick={handleCreateSession} disabled={!newSessionName.trim()} className={`flex-[2] py-5 rounded-[24px] font-black uppercase tracking-widest transition-all ${newSessionName.trim() ? 'bg-emerald-500 text-white shadow-lg shadow-emerald-100 hover:bg-emerald-600' : 'bg-slate-100 text-slate-300 cursor-not-allowed'}`}>과정 개설하기</button>
+            </div>
           </div>
         </div>
 
+        {/* 세션 목록 */}
         <div className="iso-card p-12">
-           <h3 className="font-black text-xl text-slate-900 mb-10 tracking-tight">세션 기본 설정</h3>
-           <div className="space-y-6">
-             <div className="space-y-3">
-               <label className="text-[11px] font-bold text-slate-400 uppercase tracking-widest px-1">세션 이름</label>
-               <input type="text" value={sessionName} onChange={(e) => setSessionName(e.target.value)} placeholder="예) 삼성전자 신입사원 과정" className="w-full bg-slate-50 rounded-[24px] p-6 text-2xl font-black text-slate-900 border-2 border-transparent focus:border-emerald-500/20 transition-all outline-none" />
-             </div>
-             <div className="flex gap-4">
-               <select value={maxTeams} onChange={(e) => setMaxTeams(Number(e.target.value))} className="flex-1 bg-slate-50 rounded-[24px] p-5 text-xl font-black text-slate-900 border-2 border-transparent outline-none appearance-none">{[...Array(24)].map((_, i) => <option key={i} value={i + 1}>{i + 1}개 팀 운영</option>)}</select>
-               <button onClick={() => setIsSessionActive(!isSessionActive)} className={`flex-[2] py-5 rounded-[24px] font-black uppercase tracking-widest transition-all ${isSessionActive ? 'bg-red-50 text-red-500' : 'bg-emerald-500 text-white shadow-lg shadow-emerald-100'}`}>{isSessionActive ? '미션 중지' : '미션 시작'}</button>
-             </div>
-           </div>
+          <h3 className="font-black text-xl text-slate-900 mb-8 tracking-tight flex items-center gap-3">
+            <span className="w-8 h-8 bg-slate-100 rounded-lg flex items-center justify-center text-base">📋</span>
+            개설된 과정 목록
+          </h3>
+          <div className="space-y-4 max-h-[400px] overflow-y-auto no-scrollbar">
+            {allSessions.length === 0 ? (
+              <div className="text-center py-12 text-slate-400">
+                <p className="text-lg font-bold mb-2">개설된 과정이 없습니다</p>
+                <p className="text-sm">위에서 새 과정을 개설해주세요</p>
+              </div>
+            ) : (
+              allSessions.map((session) => (
+                <div
+                  key={session.id}
+                  className={`p-6 rounded-[24px] border-2 transition-all cursor-pointer ${currentSessionId === session.id ? 'bg-emerald-50 border-emerald-300 shadow-lg' : 'bg-slate-50 border-transparent hover:border-slate-200'}`}
+                  onClick={() => handleSelectSession(session)}
+                >
+                  <div className="flex items-center justify-between mb-3">
+                    <h4 className="font-black text-lg text-slate-900">{session.sessionName}</h4>
+                    <div className="flex items-center gap-2">
+                      {session.isSessionActive ? (
+                        <span className="px-3 py-1 bg-emerald-500 text-white text-[10px] font-black rounded-full">진행중</span>
+                      ) : (
+                        <span className="px-3 py-1 bg-slate-300 text-white text-[10px] font-black rounded-full">대기</span>
+                      )}
+                      {currentSessionId === session.id && (
+                        <span className="px-3 py-1 bg-blue-500 text-white text-[10px] font-black rounded-full">선택됨</span>
+                      )}
+                    </div>
+                  </div>
+                  <p className="text-sm font-bold text-slate-400">{session.maxTeams}개 팀 운영</p>
+                </div>
+              ))
+            )}
+          </div>
         </div>
 
+        {/* 선택된 세션 컨트롤 */}
+        {currentSessionId && (
+          <div className="iso-card p-12 bg-white relative overflow-hidden">
+            <div className="absolute top-0 left-0 w-full h-2 bg-slate-900" />
+            <h3 className="font-black text-2xl text-slate-900 mb-6 tracking-tight flex items-center gap-3">
+               <span className="w-10 h-10 bg-slate-50 rounded-xl flex items-center justify-center text-lg">📢</span>
+               세션 컨트롤: {sessionName}
+            </h3>
+            <div className="grid grid-cols-2 gap-6 mb-8">
+              <button onClick={triggerReveal} disabled={isResultsRevealed} className={`flex flex-col items-center justify-center p-8 rounded-[32px] transition-all border-4 ${isResultsRevealed ? 'bg-slate-50 border-slate-100 cursor-not-allowed opacity-50' : 'bg-emerald-500 border-emerald-600 text-white shadow-2xl shadow-emerald-200 hover:scale-105 active:scale-95'}`}>
+                 <span className="text-4xl mb-3">🏁</span>
+                 <span className="text-lg font-black">결과 공개</span>
+              </button>
+              <button onClick={triggerReset} className="flex flex-col items-center justify-center p-8 rounded-[32px] bg-white border-4 border-slate-100 text-slate-900 hover:bg-red-50 hover:border-red-100 hover:text-red-500 transition-all">
+                 <span className="text-4xl mb-3">🔄</span>
+                 <span className="text-lg font-black">초기화</span>
+              </button>
+            </div>
+            <div className="flex gap-4">
+              <button onClick={() => { const newVal = !isSessionActive; setIsSessionActive(newVal); updateSessionState(currentSessionId, { isSessionActive: newVal }); }} className={`flex-1 py-4 rounded-[20px] font-black transition-all ${isSessionActive ? 'bg-red-50 text-red-500 border-2 border-red-100' : 'bg-emerald-500 text-white shadow-lg shadow-emerald-100'}`}>{isSessionActive ? '세션 중지' : '세션 시작'}</button>
+            </div>
+          </div>
+        )}
       </div>
-      
+
       <div className="space-y-10">
         <div className="bg-slate-900 rounded-[44px] shadow-2xl p-12 text-white relative overflow-hidden">
           <h3 className="font-black text-2xl mb-10 text-emerald-400 tracking-tight">시스템 로그</h3>
           <div className="space-y-4 text-xs font-mono opacity-60">
             <p className="flex gap-3"><span className="text-emerald-500">[INFO]</span> 시스템 활성화 완료.</p>
-            {isResultsRevealed && <p className="flex gap-3 text-emerald-400 font-bold"><span className="">[BROADCAST]</span> 결과 공개 시그널 송출됨.</p>}
-            <p className="flex gap-3"><span className="text-slate-500">[STATUS]</span> 1~{maxTeams}팀 데이터 동기화 대기 중...</p>
+            {currentSessionId && <p className="flex gap-3 text-blue-400"><span>[SESSION]</span> {sessionName} 선택됨</p>}
+            {isResultsRevealed && <p className="flex gap-3 text-emerald-400 font-bold"><span>[BROADCAST]</span> 결과 공개됨</p>}
+            <p className="flex gap-3"><span className="text-slate-500">[STATUS]</span> {allSessions.length}개 세션 운영 중</p>
           </div>
         </div>
-        <div className="iso-card p-12 flex flex-col items-center text-center">
-           <div className="w-20 h-20 bg-emerald-50 rounded-[28px] flex items-center justify-center text-4xl mb-6 shadow-lg shadow-emerald-50">📝</div>
-           <h3 className="font-black text-xl text-slate-900 mb-2">제출 완료</h3>
-           <p className="text-5xl font-black text-emerald-500">{Object.keys(teamSubmissions).length}</p>
-           <p className="text-sm font-bold text-slate-400 mt-2">/ {maxTeams}팀</p>
-        </div>
+        {currentSessionId && (
+          <div className="iso-card p-12 flex flex-col items-center text-center">
+             <div className="w-20 h-20 bg-emerald-50 rounded-[28px] flex items-center justify-center text-4xl mb-6 shadow-lg shadow-emerald-50">📝</div>
+             <h3 className="font-black text-xl text-slate-900 mb-2">제출 완료</h3>
+             <p className="text-5xl font-black text-emerald-500">{Object.keys(teamSubmissions).length}</p>
+             <p className="text-sm font-bold text-slate-400 mt-2">/ {maxTeams}팀</p>
+          </div>
+        )}
       </div>
     </div>
   );
@@ -785,6 +915,7 @@ const App: React.FC = () => {
 
   if (step === AppStep.SELECT_ROLE) return <div className="min-h-screen flex items-center justify-center sm:p-6"><div className="mobile-frame animate-slide-up">{renderRoleSelection()}</div></div>;
   if (step === AppStep.ADMIN_LOGIN) return <div className="min-h-screen flex items-center justify-center sm:p-6"><div className="mobile-frame animate-slide-up">{renderAdminLogin()}</div></div>;
+  if (step === AppStep.SESSION_SELECTION) return <div className="min-h-screen flex items-center justify-center sm:p-6"><div className="mobile-frame animate-slide-up">{renderSessionSelection()}</div></div>;
 
   return (
     <div className="min-h-screen">

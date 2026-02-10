@@ -34,6 +34,7 @@ export interface BiddingSimulationResult {
 export enum AppStep {
   SELECT_ROLE = 'SELECT_ROLE',
   ADMIN_LOGIN = 'ADMIN_LOGIN',
+  SESSION_SELECTION = 'SESSION_SELECTION',
   TEAM_SELECTION = 'TEAM_SELECTION',
   INTRO = 'INTRO',
   LEARNING = 'LEARNING',
