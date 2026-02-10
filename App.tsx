@@ -818,7 +818,38 @@ const App: React.FC = () => {
   );
 
   const renderAdminSubmissions = () => (
-    <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
+    <div className="animate-in fade-in slide-in-from-bottom-4 duration-500 space-y-8">
+      {/* 세션 컨트롤 */}
+      {currentSessionId && (
+        <div className="iso-card p-8 bg-white relative overflow-hidden">
+          <div className="absolute top-0 left-0 w-full h-2 bg-slate-900" />
+          <div className="flex items-center justify-between mb-6">
+            <h3 className="font-black text-xl text-slate-900 tracking-tight flex items-center gap-3">
+              <span className="w-8 h-8 bg-emerald-500 rounded-lg flex items-center justify-center text-base">🎯</span>
+              {sessionName}
+            </h3>
+            <div className="flex items-center gap-2">
+              {isResultsRevealed ? (
+                <span className="px-3 py-1.5 bg-emerald-500 text-white text-xs font-black rounded-full">결과 공개됨</span>
+              ) : (
+                <span className="px-3 py-1.5 bg-slate-200 text-slate-500 text-xs font-black rounded-full">결과 미공개</span>
+              )}
+            </div>
+          </div>
+          <div className="flex gap-4">
+            <button onClick={triggerReveal} disabled={isResultsRevealed} className={`flex-1 flex items-center justify-center gap-3 py-4 rounded-2xl font-black transition-all ${isResultsRevealed ? 'bg-slate-100 text-slate-300 cursor-not-allowed' : 'bg-emerald-500 text-white shadow-lg shadow-emerald-200 hover:bg-emerald-600'}`}>
+              <span className="text-xl">🏁</span>
+              <span>결과 공개</span>
+            </button>
+            <button onClick={triggerReset} className="flex-1 flex items-center justify-center gap-3 py-4 rounded-2xl font-black bg-white border-2 border-slate-200 text-slate-600 hover:bg-red-50 hover:border-red-200 hover:text-red-500 transition-all">
+              <span className="text-xl">🔄</span>
+              <span>초기화</span>
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* 팀별 제출 현황 */}
       <div className="iso-card p-12 bg-white relative overflow-hidden">
         <div className="absolute top-0 left-0 w-full h-2 bg-emerald-500" />
         <div className="flex items-center justify-between mb-10">
