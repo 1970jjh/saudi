@@ -41,7 +41,7 @@ const CORRECT_ANSWERS = {
 const App: React.FC = () => {
   const [role, setRole] = useState<UserRole>(null);
   const [step, setStep] = useState<AppStep>(AppStep.SELECT_ROLE);
-  const [adminPassword, setAdminPassword] = useState<string>('');
+  const [adminPassword, setAdminPassword] = useState<string>('6749467');
   const [loginError, setLoginError] = useState<boolean>(false);
   const [adminSubView, setAdminSubView] = useState<AdminSubView>('dashboard');
 
@@ -1117,7 +1117,7 @@ const App: React.FC = () => {
               전체 팀 제출 결과
             </h3>
             <div className="flex items-center gap-4 text-sm font-bold">
-              <span className="px-4 py-2 bg-emerald-100 text-emerald-700 rounded-full">정답: 제안가 {CORRECT_ANSWERS.userPrice}M / 예상수익 {CORRECT_ANSWERS.expectedProfit}M</span>
+              <span className="px-4 py-2 bg-emerald-100 text-emerald-700 rounded-full">정답: 제안가 {CORRECT_ANSWERS.userPrice}M / 예상수익 {CORRECT_ANSWERS.expectedProfit}M / 미국 {CORRECT_ANSWERS.scores.USA} / 독일 {CORRECT_ANSWERS.scores.Germany} / 중국 {CORRECT_ANSWERS.scores.China} / 한국 {CORRECT_ANSWERS.scores.Korea}</span>
               <span className="px-4 py-2 bg-red-100 text-red-600 rounded-full">빨간색 = 정답</span>
             </div>
           </div>
