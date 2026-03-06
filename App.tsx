@@ -58,6 +58,7 @@ const App: React.FC = () => {
   const [showInfoCard, setShowInfoCard] = useState<boolean>(false);
   const [zoomedIndex, setZoomedIndex] = useState<number | null>(null);
   const [hasSubmitted, setHasSubmitted] = useState<boolean>(false);
+  const [isEditing, setIsEditing] = useState<boolean>(false);
   
   // Advanced Records State
   const [notes, setNotes] = useState<string[]>(['']);
@@ -258,6 +259,7 @@ const App: React.FC = () => {
   const handleFinalSubmit = async () => {
     setLoading(true);
     setHasSubmitted(true);
+    setIsEditing(false);
 
     // Save submission to Firestore
     if (selectedTeam && currentSessionId) {
@@ -350,8 +352,8 @@ const App: React.FC = () => {
           <button onClick={() => setShowInfoCard(false)} className="w-full bg-slate-900 text-white py-4 rounded-2xl mt-6 font-bold tracking-tight shadow-xl shadow-slate-200 hover:bg-slate-800 transition-colors">닫기</button>
         </div>
         {zoomedIndex !== null && (
-          <div className="absolute inset-0 z-[60] bg-slate-900/98 flex flex-col items-center justify-center p-4 animate-in zoom-in-95 duration-300 rounded-[40px]" onClick={() => setZoomedIndex(null)}>
-            <div className="w-full max-w-md flex items-center justify-between px-2 mb-3 shrink-0" onClick={(e) => e.stopPropagation()}>
+          <div className="absolute inset-0 z-[60] bg-slate-900 flex flex-col items-center justify-center p-4 animate-in zoom-in-95 duration-300 rounded-[40px]" onClick={() => setZoomedIndex(null)}>
+            <div className="w-full max-w-md flex items-center justify-between px-2 mb-3 mt-12 shrink-0" onClick={(e) => e.stopPropagation()}>
                <button className="w-10 h-10 bg-white rounded-full flex items-center justify-center font-bold text-slate-900 shadow-xl hover:bg-red-500 hover:text-white transition-all" onClick={() => setZoomedIndex(null)}>&times;</button>
                <div className="bg-white/10 backdrop-blur-xl px-5 py-2.5 border border-white/20 text-white text-xs font-bold uppercase tracking-widest rounded-full shadow-2xl">{getImageLabel(teamAssignedImages[zoomedIndex])}</div>
             </div>
@@ -600,7 +602,7 @@ const App: React.FC = () => {
 
     // Check if team has submitted (either locally or via Firestore sync)
     const teamSubmission = selectedTeam ? teamSubmissions[selectedTeam] : null;
-    const isTeamSubmitted = hasSubmitted || !!teamSubmission;
+    const isTeamSubmitted = (hasSubmitted || !!teamSubmission) && !isEditing;
 
     if (isTeamSubmitted && !isResultsRevealed) {
       const displayPrice = teamSubmission?.price || userPrice;
@@ -658,6 +660,7 @@ const App: React.FC = () => {
             <button
               onClick={() => {
                 setHasSubmitted(false);
+                setIsEditing(true);
                 if (teamSubmission) {
                   setUserPrice(teamSubmission.price);
                   setExpectedProfit(teamSubmission.profit);
