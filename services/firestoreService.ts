@@ -200,38 +200,46 @@ export const subscribeToTeamNotes = (
 // 타이머 시작
 export const startTimer = async (sessionId: string, durationSeconds: number) => {
   const endTime = Date.now() + durationSeconds * 1000;
-  await updateSessionState(sessionId, {
+  const sessionRef = doc(db, 'sessions', sessionId);
+  await setDoc(sessionRef, {
     timerDuration: durationSeconds,
     timerEndTime: endTime,
     timerStatus: 'running',
-    timerPausedRemaining: undefined
-  } as Partial<SessionState>);
+    timerPausedRemaining: null,
+    updatedAt: serverTimestamp()
+  }, { merge: true });
 };
 
 // 타이머 일시정지
 export const pauseTimer = async (sessionId: string, remainingSeconds: number) => {
-  await updateSessionState(sessionId, {
+  const sessionRef = doc(db, 'sessions', sessionId);
+  await setDoc(sessionRef, {
     timerStatus: 'paused',
     timerPausedRemaining: remainingSeconds,
-    timerEndTime: undefined
-  } as Partial<SessionState>);
+    timerEndTime: null,
+    updatedAt: serverTimestamp()
+  }, { merge: true });
 };
 
 // 타이머 재개
 export const resumeTimer = async (sessionId: string, remainingSeconds: number) => {
   const endTime = Date.now() + remainingSeconds * 1000;
-  await updateSessionState(sessionId, {
+  const sessionRef = doc(db, 'sessions', sessionId);
+  await setDoc(sessionRef, {
     timerEndTime: endTime,
     timerStatus: 'running',
-    timerPausedRemaining: undefined
-  } as Partial<SessionState>);
+    timerPausedRemaining: null,
+    updatedAt: serverTimestamp()
+  }, { merge: true });
 };
 
 // 타이머 종료
 export const stopTimer = async (sessionId: string) => {
-  await updateSessionState(sessionId, {
+  const sessionRef = doc(db, 'sessions', sessionId);
+  await setDoc(sessionRef, {
     timerStatus: 'stopped',
-    timerEndTime: undefined,
-    timerPausedRemaining: undefined
-  } as Partial<SessionState>);
+    timerEndTime: null,
+    timerPausedRemaining: null,
+    updatedAt: serverTimestamp()
+  }, { merge: true });
 };
