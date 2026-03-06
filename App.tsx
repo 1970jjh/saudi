@@ -356,12 +356,14 @@ const App: React.FC = () => {
             <div className="flex-1" />
             <div className="w-full max-w-md flex items-center justify-between px-2 mb-2 shrink-0" onClick={(e) => e.stopPropagation()}>
                <button className="w-10 h-10 bg-white rounded-full flex items-center justify-center font-bold text-slate-900 shadow-xl hover:bg-red-500 hover:text-white transition-all" onClick={() => setZoomedIndex(null)}>&times;</button>
-               <div className="bg-white/10 backdrop-blur-xl px-5 py-2.5 border border-white/20 text-white text-xs font-bold uppercase tracking-widest rounded-full shadow-2xl">{getImageLabel(teamAssignedImages[zoomedIndex])}</div>
+               <div className="flex items-center gap-4">
+                 <button onClick={(e) => { e.stopPropagation(); const len = teamAssignedImages.length; setZoomedIndex((zoomedIndex - 1 + len) % len); }} className="text-white/40 hover:text-white transition-all active:scale-90 text-3xl font-light">‹</button>
+                 <div className="bg-white/10 backdrop-blur-xl px-5 py-2.5 border border-white/20 text-white text-xs font-bold uppercase tracking-widest rounded-full shadow-2xl">{getImageLabel(teamAssignedImages[zoomedIndex])}</div>
+                 <button onClick={(e) => { e.stopPropagation(); const len = teamAssignedImages.length; setZoomedIndex((zoomedIndex + 1) % len); }} className="text-white/40 hover:text-white transition-all active:scale-90 text-3xl font-light">›</button>
+               </div>
             </div>
             <div className="relative group max-w-full flex-[8] min-h-0 flex items-center justify-center w-full" onClick={(e) => e.stopPropagation()}>
-               <button onClick={(e) => { e.stopPropagation(); const len = teamAssignedImages.length; setZoomedIndex((zoomedIndex - 1 + len) % len); }} className="absolute left-0 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-white/20 backdrop-blur-xl flex items-center justify-center text-white hover:bg-white/30 transition-all active:scale-90 z-10"><span className="text-2xl leading-none">‹</span></button>
-               <img src={teamAssignedImages[zoomedIndex]} className="max-w-[calc(100%-100px)] max-h-full rounded-[32px] shadow-2xl object-contain border border-white/10 mx-auto" alt="" />
-               <button onClick={(e) => { e.stopPropagation(); const len = teamAssignedImages.length; setZoomedIndex((zoomedIndex + 1) % len); }} className="absolute right-0 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-white/20 backdrop-blur-xl flex items-center justify-center text-white hover:bg-white/30 transition-all active:scale-90 z-10"><span className="text-2xl leading-none">›</span></button>
+               <img src={teamAssignedImages[zoomedIndex]} className="max-w-full max-h-full rounded-[32px] shadow-2xl object-contain border border-white/10" alt="" />
             </div>
             <div className="flex-1" />
           </div>
