@@ -92,6 +92,7 @@ const App: React.FC = () => {
 
   // Admin: Team Submissions Tracking
   const [teamSubmissions, setTeamSubmissions] = useState<Record<number, { name: string; price: string; profit: string; scores: { USA: string; Germany: string; China: string; Korea: string }; timestamp: number }>>({});
+  const [revealedTeam, setRevealedTeam] = useState<number | null>(null);
 
   // Subscribe to active sessions list (for learners)
   useEffect(() => {
@@ -916,15 +917,15 @@ const App: React.FC = () => {
                   onClick={() => handleSelectSession(session)}
                 >
                   <div className="flex items-center justify-between mb-3">
-                    <h4 className="font-black text-lg text-slate-900">{session.sessionName}</h4>
-                    <div className="flex items-center gap-2">
+                    <h4 className="font-black text-xl text-slate-900">{session.sessionName}</h4>
+                    <div className="flex items-center gap-3">
                       {session.isSessionActive ? (
-                        <span className="px-3 py-1 bg-emerald-500 text-white text-[10px] font-black rounded-full">진행중</span>
+                        <span className="px-5 py-2 bg-emerald-500 text-white text-sm font-black rounded-full shadow-lg shadow-emerald-200">진행중</span>
                       ) : (
-                        <span className="px-3 py-1 bg-slate-300 text-white text-[10px] font-black rounded-full">대기</span>
+                        <span className="px-5 py-2 bg-slate-300 text-white text-sm font-black rounded-full">대기</span>
                       )}
                       {currentSessionId === session.id && (
-                        <span className="px-3 py-1 bg-blue-500 text-white text-[10px] font-black rounded-full">선택됨</span>
+                        <span className="px-5 py-2 bg-blue-500 text-white text-sm font-black rounded-full shadow-lg shadow-blue-200">선택됨</span>
                       )}
                       <button
                         onClick={(e) => {
@@ -934,7 +935,7 @@ const App: React.FC = () => {
                             if (currentSessionId === session.id) setCurrentSessionId(null);
                           }
                         }}
-                        className="px-3 py-1 bg-red-100 text-red-500 text-[10px] font-black rounded-full hover:bg-red-500 hover:text-white transition-all"
+                        className="px-5 py-2 bg-red-100 text-red-500 text-sm font-black rounded-full hover:bg-red-500 hover:text-white transition-all shadow-sm"
                       >
                         삭제
                       </button>
@@ -1077,7 +1078,11 @@ const App: React.FC = () => {
             const teamNum = i + 1;
             const submission = teamSubmissions[teamNum];
             return (
-              <div key={teamNum} className={`p-5 rounded-[24px] border-2 transition-all ${submission ? 'bg-emerald-50 border-emerald-200 shadow-lg shadow-emerald-100/50' : 'bg-slate-50 border-slate-100'}`}>
+              <div
+                key={teamNum}
+                className={`p-5 rounded-[24px] border-2 transition-all ${submission ? 'bg-emerald-50 border-emerald-200 shadow-lg shadow-emerald-100/50 cursor-pointer hover:scale-105 hover:shadow-xl' : 'bg-slate-50 border-slate-100'}`}
+                onClick={() => submission && setRevealedTeam(teamNum)}
+              >
                 <div className="flex items-center justify-between mb-3">
                   <span className="font-black text-xl text-slate-900">{teamNum}조</span>
                   {submission ? (
@@ -1087,21 +1092,9 @@ const App: React.FC = () => {
                   )}
                 </div>
                 {submission ? (
-                  <div className="space-y-2">
-                    <p className="text-xs font-bold text-slate-500 truncate">{submission.name}</p>
-                    <p className="text-xl font-black text-emerald-600">${submission.price}M</p>
-                    <p className="text-xs font-bold text-slate-400">예상수익: ${submission.profit}M</p>
-                    {submission.scores && (
-                      <div className="pt-2 mt-2 border-t border-emerald-200 space-y-1">
-                        <p className="text-[9px] font-black text-slate-400 uppercase">국가별 점수</p>
-                        <div className="grid grid-cols-2 gap-1 text-[10px]">
-                          <span className="text-slate-500">🇺🇸 {submission.scores.USA || '-'}</span>
-                          <span className="text-slate-500">🇩🇪 {submission.scores.Germany || '-'}</span>
-                          <span className="text-slate-500">🇨🇳 {submission.scores.China || '-'}</span>
-                          <span className="text-slate-500">🇰🇷 {submission.scores.Korea || '-'}</span>
-                        </div>
-                      </div>
-                    )}
+                  <div className="py-4 text-center">
+                    <p className="text-lg font-black text-emerald-600">✓ 제출 완료</p>
+                    <p className="text-xs font-bold text-slate-400 mt-1">클릭하여 공개</p>
                   </div>
                 ) : (
                   <div className="py-4">
@@ -1112,6 +1105,71 @@ const App: React.FC = () => {
             );
           })}
         </div>
+
+        {/* Team Reveal Popup */}
+        {revealedTeam && teamSubmissions[revealedTeam] && (
+          <div
+            className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/90 backdrop-blur-sm animate-in fade-in duration-300"
+            onClick={() => setRevealedTeam(null)}
+          >
+            <div
+              className="bg-white rounded-[40px] p-12 max-w-2xl w-full mx-6 shadow-2xl animate-in zoom-in-95 duration-500"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <div className="text-center mb-8">
+                <div className="inline-flex items-center justify-center w-24 h-24 bg-emerald-500 rounded-[32px] mb-6 shadow-2xl shadow-emerald-200">
+                  <span className="text-5xl">🎯</span>
+                </div>
+                <h2 className="text-4xl font-black text-slate-900 tracking-tight">{revealedTeam}조 제안서</h2>
+                <p className="text-lg font-bold text-slate-400 mt-2">{teamSubmissions[revealedTeam].name}</p>
+              </div>
+
+              <div className="bg-emerald-50 rounded-[28px] p-8 mb-6">
+                <div className="grid grid-cols-2 gap-6">
+                  <div className="text-center">
+                    <p className="text-sm font-black text-emerald-600 uppercase tracking-widest mb-2">최종 제안가</p>
+                    <p className="text-5xl font-black text-slate-900">${teamSubmissions[revealedTeam].price}M</p>
+                  </div>
+                  <div className="text-center">
+                    <p className="text-sm font-black text-emerald-600 uppercase tracking-widest mb-2">예상 수익</p>
+                    <p className="text-5xl font-black text-slate-900">${teamSubmissions[revealedTeam].profit}M</p>
+                  </div>
+                </div>
+              </div>
+
+              {teamSubmissions[revealedTeam].scores && (
+                <div className="bg-slate-50 rounded-[28px] p-8 mb-8">
+                  <p className="text-sm font-black text-slate-400 uppercase tracking-widest mb-4 text-center">국가별 점수</p>
+                  <div className="grid grid-cols-4 gap-4">
+                    <div className="text-center p-4 bg-white rounded-2xl">
+                      <span className="text-2xl">🇺🇸</span>
+                      <p className="text-2xl font-black text-slate-900 mt-2">{teamSubmissions[revealedTeam].scores.USA || '-'}</p>
+                    </div>
+                    <div className="text-center p-4 bg-white rounded-2xl">
+                      <span className="text-2xl">🇩🇪</span>
+                      <p className="text-2xl font-black text-slate-900 mt-2">{teamSubmissions[revealedTeam].scores.Germany || '-'}</p>
+                    </div>
+                    <div className="text-center p-4 bg-white rounded-2xl">
+                      <span className="text-2xl">🇨🇳</span>
+                      <p className="text-2xl font-black text-slate-900 mt-2">{teamSubmissions[revealedTeam].scores.China || '-'}</p>
+                    </div>
+                    <div className="text-center p-4 bg-white rounded-2xl">
+                      <span className="text-2xl">🇰🇷</span>
+                      <p className="text-2xl font-black text-slate-900 mt-2">{teamSubmissions[revealedTeam].scores.Korea || '-'}</p>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              <button
+                onClick={() => setRevealedTeam(null)}
+                className="w-full py-5 rounded-2xl bg-slate-900 text-white font-black text-lg hover:bg-slate-800 transition-all"
+              >
+                닫기
+              </button>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );
@@ -1126,7 +1184,7 @@ const App: React.FC = () => {
         <nav className="space-y-3 flex-1">
           <button onClick={() => setAdminSubView('dashboard')} className={`w-full text-left p-5 rounded-[20px] font-black text-sm tracking-tight border transition-all flex items-center gap-3 ${adminSubView === 'dashboard' ? 'bg-emerald-50 text-emerald-600 border-emerald-100/50' : 'text-slate-400 border-transparent hover:bg-slate-50'}`}>
             <span className="text-lg">⚙️</span>
-            <span>과정 개설 목록</span>
+            <span>과정 개설</span>
           </button>
           {/* Active sessions as navigation items */}
           {allSessions.filter(s => s.isSessionActive).map(session => (
@@ -1158,7 +1216,7 @@ const App: React.FC = () => {
         <header className="mb-16 flex justify-between items-end">
           <div>
             <h2 className="text-5xl font-black text-slate-900 tracking-tighter mb-3">
-              {adminSubView === 'dashboard' ? '과정 개설 목록' : sessionName || '팀별 제출 현황'}
+              {adminSubView === 'dashboard' ? '과정 개설' : sessionName || '팀별 제출 현황'}
             </h2>
             <p className="text-slate-400 font-bold text-sm uppercase tracking-widest">
               {adminSubView === 'dashboard' ? 'Session Setup & Control' : 'Real-time Team Submissions'}
