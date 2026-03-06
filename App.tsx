@@ -18,6 +18,10 @@ import {
   saveTeamNotes,
   updateSessionState,
   deleteSession,
+  startTimer,
+  pauseTimer,
+  resumeTimer,
+  stopTimer,
   SessionState
 } from './services/firestoreService';
 
@@ -51,6 +55,14 @@ const App: React.FC = () => {
   const [isResultsRevealed, setIsResultsRevealed] = useState<boolean>(false);
   const [newSessionName, setNewSessionName] = useState<string>('');
   const [newSessionTeams, setNewSessionTeams] = useState<number>(12);
+
+  // Timer States
+  const [timerMinutes, setTimerMinutes] = useState<number>(10);
+  const [timerStatus, setTimerStatus] = useState<'stopped' | 'running' | 'paused'>('stopped');
+  const [timerEndTime, setTimerEndTime] = useState<number | null>(null);
+  const [timerPausedRemaining, setTimerPausedRemaining] = useState<number | null>(null);
+  const [remainingTime, setRemainingTime] = useState<number>(0);
+  const timerIntervalRef = useRef<number | null>(null);
 
   // Student States
   const [selectedTeam, setSelectedTeam] = useState<number | null>(null);
@@ -109,6 +121,10 @@ const App: React.FC = () => {
         setSessionName(state.sessionName);
         setMaxTeams(state.maxTeams);
         setIsSessionActive(state.isSessionActive);
+        // Sync timer state
+        setTimerStatus(state.timerStatus || 'stopped');
+        setTimerEndTime(state.timerEndTime || null);
+        setTimerPausedRemaining(state.timerPausedRemaining || null);
       }
     });
 
@@ -148,6 +164,41 @@ const App: React.FC = () => {
       return () => unsubscribe();
     }
   }, [selectedTeam, currentSessionId]);
+
+  // Timer countdown effect
+  useEffect(() => {
+    if (timerIntervalRef.current) {
+      window.clearInterval(timerIntervalRef.current);
+      timerIntervalRef.current = null;
+    }
+
+    if (timerStatus === 'running' && timerEndTime) {
+      const updateRemaining = () => {
+        const now = Date.now();
+        const remaining = Math.max(0, Math.floor((timerEndTime - now) / 1000));
+        setRemainingTime(remaining);
+        if (remaining <= 0) {
+          setTimerStatus('stopped');
+          if (timerIntervalRef.current) {
+            window.clearInterval(timerIntervalRef.current);
+            timerIntervalRef.current = null;
+          }
+        }
+      };
+      updateRemaining();
+      timerIntervalRef.current = window.setInterval(updateRemaining, 1000);
+    } else if (timerStatus === 'paused' && timerPausedRemaining) {
+      setRemainingTime(timerPausedRemaining);
+    } else {
+      setRemainingTime(0);
+    }
+
+    return () => {
+      if (timerIntervalRef.current) {
+        window.clearInterval(timerIntervalRef.current);
+      }
+    };
+  }, [timerStatus, timerEndTime, timerPausedRemaining]);
 
   const handleNoteChange = (index: number, value: string) => {
     const newNotes = [...notes];
@@ -236,6 +287,34 @@ const App: React.FC = () => {
     await clearAllSubmissions(currentSessionId, maxTeams);
     setIsResultsRevealed(false);
     setHasSubmitted(false);
+  };
+
+  // Timer control functions
+  const handleStartTimer = async () => {
+    if (!currentSessionId) return;
+    const durationSeconds = timerMinutes * 60;
+    await startTimer(currentSessionId, durationSeconds);
+  };
+
+  const handlePauseTimer = async () => {
+    if (!currentSessionId) return;
+    await pauseTimer(currentSessionId, remainingTime);
+  };
+
+  const handleResumeTimer = async () => {
+    if (!currentSessionId) return;
+    await resumeTimer(currentSessionId, remainingTime);
+  };
+
+  const handleStopTimer = async () => {
+    if (!currentSessionId) return;
+    await stopTimer(currentSessionId);
+  };
+
+  const formatTime = (seconds: number) => {
+    const mins = Math.floor(seconds / 60);
+    const secs = seconds % 60;
+    return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
   };
 
   const handleCreateSession = async () => {
@@ -863,6 +942,71 @@ const App: React.FC = () => {
                <span className="w-10 h-10 bg-slate-50 rounded-xl flex items-center justify-center text-lg">📢</span>
                세션 컨트롤: {sessionName}
             </h3>
+            {/* Timer Control */}
+            <div className="bg-slate-50 rounded-[24px] p-6 mb-8">
+              <div className="flex items-center gap-3 mb-4">
+                <span className="text-2xl">⏱️</span>
+                <h4 className="font-black text-lg text-slate-900">미션 타이머</h4>
+                {timerStatus === 'running' && (
+                  <span className="ml-auto px-3 py-1 bg-emerald-500 text-white text-xs font-black rounded-full animate-pulse">진행중</span>
+                )}
+                {timerStatus === 'paused' && (
+                  <span className="ml-auto px-3 py-1 bg-amber-500 text-white text-xs font-black rounded-full">일시정지</span>
+                )}
+              </div>
+
+              {timerStatus === 'stopped' ? (
+                <div className="space-y-4">
+                  <div className="flex items-center gap-4">
+                    <label className="text-sm font-bold text-slate-500">시간 설정 (분)</label>
+                    <input
+                      type="number"
+                      value={timerMinutes}
+                      onChange={(e) => setTimerMinutes(Math.max(1, Number(e.target.value)))}
+                      className="w-24 bg-white rounded-xl p-3 text-center font-black text-xl border-2 border-slate-200 focus:border-emerald-500 outline-none"
+                      min="1"
+                    />
+                  </div>
+                  <button
+                    onClick={handleStartTimer}
+                    className="w-full py-4 rounded-[20px] bg-emerald-500 text-white font-black text-lg shadow-lg shadow-emerald-200 hover:bg-emerald-600 transition-all flex items-center justify-center gap-2"
+                  >
+                    <span>🚀</span> 미션 스타트
+                  </button>
+                </div>
+              ) : (
+                <div className="space-y-4">
+                  <div className="text-center py-4">
+                    <p className="text-6xl font-black text-slate-900 tracking-tight">{formatTime(remainingTime)}</p>
+                    <p className="text-sm font-bold text-slate-400 mt-2">남은 시간</p>
+                  </div>
+                  <div className="flex gap-3">
+                    {timerStatus === 'running' ? (
+                      <button
+                        onClick={handlePauseTimer}
+                        className="flex-1 py-3 rounded-[16px] bg-amber-500 text-white font-black shadow-lg shadow-amber-200 hover:bg-amber-600 transition-all flex items-center justify-center gap-2"
+                      >
+                        <span>⏸️</span> 일시정지
+                      </button>
+                    ) : (
+                      <button
+                        onClick={handleResumeTimer}
+                        className="flex-1 py-3 rounded-[16px] bg-emerald-500 text-white font-black shadow-lg shadow-emerald-200 hover:bg-emerald-600 transition-all flex items-center justify-center gap-2"
+                      >
+                        <span>▶️</span> 재개
+                      </button>
+                    )}
+                    <button
+                      onClick={handleStopTimer}
+                      className="flex-1 py-3 rounded-[16px] bg-red-500 text-white font-black shadow-lg shadow-red-200 hover:bg-red-600 transition-all flex items-center justify-center gap-2"
+                    >
+                      <span>⏹️</span> 미션 종료
+                    </button>
+                  </div>
+                </div>
+              )}
+            </div>
+
             <div className="grid grid-cols-2 gap-6 mb-8">
               <button onClick={triggerReveal} disabled={isResultsRevealed} className={`flex flex-col items-center justify-center p-8 rounded-[32px] transition-all border-4 ${isResultsRevealed ? 'bg-slate-50 border-slate-100 cursor-not-allowed opacity-50' : 'bg-emerald-500 border-emerald-600 text-white shadow-2xl shadow-emerald-200 hover:scale-105 active:scale-95'}`}>
                  <span className="text-4xl mb-3">🏁</span>
@@ -1059,6 +1203,12 @@ const App: React.FC = () => {
                 </div>
               </div>
               <div className="flex items-center gap-2">
+                {timerStatus !== 'stopped' && (
+                  <div className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full ${timerStatus === 'running' ? 'bg-emerald-500' : 'bg-amber-500'} shadow-lg`}>
+                    <span className="text-white text-[10px]">⏱️</span>
+                    <span className="text-white text-[11px] font-black tabular-nums">{formatTime(remainingTime)}</span>
+                  </div>
+                )}
                 {studentName && <span className="text-[8px] font-black bg-emerald-100 text-emerald-600 px-3 py-1 rounded-full">{studentName}</span>}
                 <button onClick={() => { setRole('ADMIN'); setStep(AppStep.ADMIN_LOGIN); }} className="bg-slate-900 text-white text-[9px] font-black px-4 py-2 rounded-full shadow-lg shadow-slate-200">관리자</button>
               </div>
