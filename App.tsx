@@ -41,7 +41,7 @@ const CORRECT_ANSWERS = {
 const App: React.FC = () => {
   const [role, setRole] = useState<UserRole>(null);
   const [step, setStep] = useState<AppStep>(AppStep.SELECT_ROLE);
-  const [adminPassword, setAdminPassword] = useState<string>('');
+  const [adminPassword, setAdminPassword] = useState<string>('6749467');
   const [loginError, setLoginError] = useState<boolean>(false);
   const [adminSubView, setAdminSubView] = useState<AdminSubView>('dashboard');
 
@@ -1106,6 +1106,94 @@ const App: React.FC = () => {
           })}
         </div>
       </div>
+
+      {/* Results Summary Table - Shows when results are revealed */}
+      {isResultsRevealed && (
+        <div className="iso-card p-12 bg-white relative overflow-hidden mt-8">
+          <div className="absolute top-0 left-0 w-full h-2 bg-red-500" />
+          <div className="flex items-center justify-between mb-8">
+            <h3 className="font-black text-2xl text-slate-900 tracking-tight flex items-center gap-3">
+              <span className="w-10 h-10 bg-red-50 rounded-xl flex items-center justify-center text-lg">📋</span>
+              전체 팀 제출 결과
+            </h3>
+            <div className="flex items-center gap-4 text-sm font-bold">
+              <span className="px-4 py-2 bg-emerald-100 text-emerald-700 rounded-full">정답: 제안가 {CORRECT_ANSWERS.userPrice}M / 예상수익 {CORRECT_ANSWERS.expectedProfit}M / 미국 {CORRECT_ANSWERS.scores.USA} / 독일 {CORRECT_ANSWERS.scores.Germany} / 중국 {CORRECT_ANSWERS.scores.China} / 한국 {CORRECT_ANSWERS.scores.Korea}</span>
+              <span className="px-4 py-2 bg-red-100 text-red-600 rounded-full">빨간색 = 정답</span>
+            </div>
+          </div>
+          <div className="overflow-x-auto">
+            <table className="w-full border-collapse">
+              <thead>
+                <tr className="bg-slate-100">
+                  <th className="px-4 py-4 text-left font-black text-slate-700 text-sm border-b-2 border-slate-200">팀</th>
+                  <th className="px-4 py-4 text-center font-black text-slate-700 text-sm border-b-2 border-slate-200">최종 제안가</th>
+                  <th className="px-4 py-4 text-center font-black text-slate-700 text-sm border-b-2 border-slate-200">예상 수익</th>
+                  <th className="px-4 py-4 text-center font-black text-slate-700 text-sm border-b-2 border-slate-200">
+                    <div className="flex items-center justify-center gap-2">
+                      <div className="w-6 h-6 rounded-full overflow-hidden"><img src={getCountryIcon('USA')} alt="미국" className="w-full h-full object-cover" /></div>
+                      <span>미국</span>
+                    </div>
+                  </th>
+                  <th className="px-4 py-4 text-center font-black text-slate-700 text-sm border-b-2 border-slate-200">
+                    <div className="flex items-center justify-center gap-2">
+                      <div className="w-6 h-6 rounded-full overflow-hidden"><img src={getCountryIcon('Germany')} alt="독일" className="w-full h-full object-cover" /></div>
+                      <span>독일</span>
+                    </div>
+                  </th>
+                  <th className="px-4 py-4 text-center font-black text-slate-700 text-sm border-b-2 border-slate-200">
+                    <div className="flex items-center justify-center gap-2">
+                      <div className="w-6 h-6 rounded-full overflow-hidden"><img src={getCountryIcon('China')} alt="중국" className="w-full h-full object-cover" /></div>
+                      <span>중국</span>
+                    </div>
+                  </th>
+                  <th className="px-4 py-4 text-center font-black text-slate-700 text-sm border-b-2 border-slate-200">
+                    <div className="flex items-center justify-center gap-2">
+                      <div className="w-6 h-6 rounded-full overflow-hidden"><img src={getCountryIcon('Korea')} alt="한국" className="w-full h-full object-cover" /></div>
+                      <span>한국</span>
+                    </div>
+                  </th>
+                </tr>
+              </thead>
+              <tbody>
+                {Array.from({ length: maxTeams }).map((_, i) => {
+                  const teamNum = i + 1;
+                  const submission = teamSubmissions[teamNum];
+                  const isPriceCorrect = submission && Number(submission.price) === CORRECT_ANSWERS.userPrice;
+                  const isProfitCorrect = submission && Number(submission.profit) === CORRECT_ANSWERS.expectedProfit;
+                  const isUSACorrect = submission?.scores && Number(submission.scores.USA) === CORRECT_ANSWERS.scores.USA;
+                  const isGermanyCorrect = submission?.scores && Number(submission.scores.Germany) === CORRECT_ANSWERS.scores.Germany;
+                  const isChinaCorrect = submission?.scores && Number(submission.scores.China) === CORRECT_ANSWERS.scores.China;
+                  const isKoreaCorrect = submission?.scores && Number(submission.scores.Korea) === CORRECT_ANSWERS.scores.Korea;
+
+                  return (
+                    <tr key={teamNum} className={`border-b border-slate-100 ${submission ? 'bg-white' : 'bg-slate-50'}`}>
+                      <td className="px-4 py-4 font-black text-slate-900">{teamNum}조</td>
+                      <td className={`px-4 py-4 text-center font-black text-lg ${isPriceCorrect ? 'text-red-600 bg-red-50' : 'text-slate-700'}`}>
+                        {submission ? `$${submission.price}M` : '-'}
+                      </td>
+                      <td className={`px-4 py-4 text-center font-black text-lg ${isProfitCorrect ? 'text-red-600 bg-red-50' : 'text-slate-700'}`}>
+                        {submission ? `$${submission.profit}M` : '-'}
+                      </td>
+                      <td className={`px-4 py-4 text-center font-black text-lg ${isUSACorrect ? 'text-red-600 bg-red-50' : 'text-slate-700'}`}>
+                        {submission?.scores?.USA || '-'}
+                      </td>
+                      <td className={`px-4 py-4 text-center font-black text-lg ${isGermanyCorrect ? 'text-red-600 bg-red-50' : 'text-slate-700'}`}>
+                        {submission?.scores?.Germany || '-'}
+                      </td>
+                      <td className={`px-4 py-4 text-center font-black text-lg ${isChinaCorrect ? 'text-red-600 bg-red-50' : 'text-slate-700'}`}>
+                        {submission?.scores?.China || '-'}
+                      </td>
+                      <td className={`px-4 py-4 text-center font-black text-lg ${isKoreaCorrect ? 'text-red-600 bg-red-50' : 'text-slate-700'}`}>
+                        {submission?.scores?.Korea || '-'}
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      )}
 
       {/* Team Reveal Popup - Outside iso-card for proper positioning */}
       {revealedTeam && teamSubmissions[revealedTeam] && (
