@@ -122,9 +122,10 @@ const App: React.FC = () => {
         setMaxTeams(state.maxTeams);
         setIsSessionActive(state.isSessionActive);
         // Sync timer state
-        setTimerStatus(state.timerStatus || 'stopped');
-        setTimerEndTime(state.timerEndTime || null);
-        setTimerPausedRemaining(state.timerPausedRemaining || null);
+        const status = state.timerStatus || 'stopped';
+        setTimerStatus(status);
+        setTimerEndTime(state.timerEndTime ?? null);
+        setTimerPausedRemaining(state.timerPausedRemaining ?? null);
       }
     });
 
@@ -925,6 +926,18 @@ const App: React.FC = () => {
                       {currentSessionId === session.id && (
                         <span className="px-3 py-1 bg-blue-500 text-white text-[10px] font-black rounded-full">선택됨</span>
                       )}
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          if (confirm(`"${session.sessionName}" 과정을 삭제하시겠습니까?`)) {
+                            deleteSession(session.id);
+                            if (currentSessionId === session.id) setCurrentSessionId(null);
+                          }
+                        }}
+                        className="px-3 py-1 bg-red-100 text-red-500 text-[10px] font-black rounded-full hover:bg-red-500 hover:text-white transition-all"
+                      >
+                        삭제
+                      </button>
                     </div>
                   </div>
                   <p className="text-sm font-bold text-slate-400">{session.maxTeams}개 팀 운영</p>
@@ -933,30 +946,6 @@ const App: React.FC = () => {
             )}
           </div>
         </div>
-
-        {/* 선택된 세션 컨트롤 */}
-        {currentSessionId && (
-          <div className="iso-card p-12 bg-white relative overflow-hidden">
-            <div className="absolute top-0 left-0 w-full h-2 bg-slate-900" />
-            <h3 className="font-black text-2xl text-slate-900 mb-6 tracking-tight flex items-center gap-3">
-               <span className="w-10 h-10 bg-slate-50 rounded-xl flex items-center justify-center text-lg">📢</span>
-               세션 컨트롤: {sessionName}
-            </h3>
-            <div className="grid grid-cols-2 gap-6 mb-8">
-              <button onClick={triggerReveal} disabled={isResultsRevealed} className={`flex flex-col items-center justify-center p-8 rounded-[32px] transition-all border-4 ${isResultsRevealed ? 'bg-slate-50 border-slate-100 cursor-not-allowed opacity-50' : 'bg-emerald-500 border-emerald-600 text-white shadow-2xl shadow-emerald-200 hover:scale-105 active:scale-95'}`}>
-                 <span className="text-4xl mb-3">🏁</span>
-                 <span className="text-lg font-black">결과 공개</span>
-              </button>
-              <button onClick={triggerReset} className="flex flex-col items-center justify-center p-8 rounded-[32px] bg-white border-4 border-slate-100 text-slate-900 hover:bg-red-50 hover:border-red-100 hover:text-red-500 transition-all">
-                 <span className="text-4xl mb-3">🔄</span>
-                 <span className="text-lg font-black">초기화</span>
-              </button>
-            </div>
-            <div className="flex gap-4">
-              <button onClick={() => { const newVal = !isSessionActive; setIsSessionActive(newVal); updateSessionState(currentSessionId, { isSessionActive: newVal }); }} className={`flex-1 py-4 rounded-[20px] font-black transition-all ${isSessionActive ? 'bg-red-50 text-red-500 border-2 border-red-100' : 'bg-emerald-500 text-white shadow-lg shadow-emerald-100'}`}>{isSessionActive ? '세션 중지' : '세션 시작'}</button>
-            </div>
-          </div>
-        )}
       </div>
 
       <div className="space-y-10">
