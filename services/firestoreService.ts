@@ -22,6 +22,11 @@ export interface SessionState {
   isResultsRevealed: boolean;
   createdAt: Timestamp;
   updatedAt: Timestamp;
+  // Timer fields
+  timerDuration?: number; // total seconds
+  timerEndTime?: number; // timestamp when timer ends
+  timerStatus?: 'stopped' | 'running' | 'paused';
+  timerPausedRemaining?: number; // remaining seconds when paused
 }
 
 // 팀 제출 타입
@@ -190,4 +195,43 @@ export const subscribeToTeamNotes = (
       callback(['']);
     }
   });
+};
+
+// 타이머 시작
+export const startTimer = async (sessionId: string, durationSeconds: number) => {
+  const endTime = Date.now() + durationSeconds * 1000;
+  await updateSessionState(sessionId, {
+    timerDuration: durationSeconds,
+    timerEndTime: endTime,
+    timerStatus: 'running',
+    timerPausedRemaining: undefined
+  } as Partial<SessionState>);
+};
+
+// 타이머 일시정지
+export const pauseTimer = async (sessionId: string, remainingSeconds: number) => {
+  await updateSessionState(sessionId, {
+    timerStatus: 'paused',
+    timerPausedRemaining: remainingSeconds,
+    timerEndTime: undefined
+  } as Partial<SessionState>);
+};
+
+// 타이머 재개
+export const resumeTimer = async (sessionId: string, remainingSeconds: number) => {
+  const endTime = Date.now() + remainingSeconds * 1000;
+  await updateSessionState(sessionId, {
+    timerEndTime: endTime,
+    timerStatus: 'running',
+    timerPausedRemaining: undefined
+  } as Partial<SessionState>);
+};
+
+// 타이머 종료
+export const stopTimer = async (sessionId: string) => {
+  await updateSessionState(sessionId, {
+    timerStatus: 'stopped',
+    timerEndTime: undefined,
+    timerPausedRemaining: undefined
+  } as Partial<SessionState>);
 };
