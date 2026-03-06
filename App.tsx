@@ -1105,72 +1105,75 @@ const App: React.FC = () => {
             );
           })}
         </div>
-
-        {/* Team Reveal Popup */}
-        {revealedTeam && teamSubmissions[revealedTeam] && (
-          <div
-            className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/90 backdrop-blur-sm animate-in fade-in duration-300"
-            onClick={() => setRevealedTeam(null)}
-          >
-            <div
-              className="bg-white rounded-[40px] p-12 max-w-2xl w-full mx-6 shadow-2xl animate-in zoom-in-95 duration-500"
-              onClick={(e) => e.stopPropagation()}
-            >
-              <div className="text-center mb-8">
-                <div className="inline-flex items-center justify-center w-24 h-24 bg-emerald-500 rounded-[32px] mb-6 shadow-2xl shadow-emerald-200">
-                  <span className="text-5xl">🎯</span>
-                </div>
-                <h2 className="text-4xl font-black text-slate-900 tracking-tight">{revealedTeam}조 제안서</h2>
-                <p className="text-lg font-bold text-slate-400 mt-2">{teamSubmissions[revealedTeam].name}</p>
-              </div>
-
-              <div className="bg-emerald-50 rounded-[28px] p-8 mb-6">
-                <div className="grid grid-cols-2 gap-6">
-                  <div className="text-center">
-                    <p className="text-sm font-black text-emerald-600 uppercase tracking-widest mb-2">최종 제안가</p>
-                    <p className="text-5xl font-black text-slate-900">${teamSubmissions[revealedTeam].price}M</p>
-                  </div>
-                  <div className="text-center">
-                    <p className="text-sm font-black text-emerald-600 uppercase tracking-widest mb-2">예상 수익</p>
-                    <p className="text-5xl font-black text-slate-900">${teamSubmissions[revealedTeam].profit}M</p>
-                  </div>
-                </div>
-              </div>
-
-              {teamSubmissions[revealedTeam].scores && (
-                <div className="bg-slate-50 rounded-[28px] p-8 mb-8">
-                  <p className="text-sm font-black text-slate-400 uppercase tracking-widest mb-4 text-center">국가별 점수</p>
-                  <div className="grid grid-cols-4 gap-4">
-                    <div className="text-center p-4 bg-white rounded-2xl">
-                      <span className="text-2xl">🇺🇸</span>
-                      <p className="text-2xl font-black text-slate-900 mt-2">{teamSubmissions[revealedTeam].scores.USA || '-'}</p>
-                    </div>
-                    <div className="text-center p-4 bg-white rounded-2xl">
-                      <span className="text-2xl">🇩🇪</span>
-                      <p className="text-2xl font-black text-slate-900 mt-2">{teamSubmissions[revealedTeam].scores.Germany || '-'}</p>
-                    </div>
-                    <div className="text-center p-4 bg-white rounded-2xl">
-                      <span className="text-2xl">🇨🇳</span>
-                      <p className="text-2xl font-black text-slate-900 mt-2">{teamSubmissions[revealedTeam].scores.China || '-'}</p>
-                    </div>
-                    <div className="text-center p-4 bg-white rounded-2xl">
-                      <span className="text-2xl">🇰🇷</span>
-                      <p className="text-2xl font-black text-slate-900 mt-2">{teamSubmissions[revealedTeam].scores.Korea || '-'}</p>
-                    </div>
-                  </div>
-                </div>
-              )}
-
-              <button
-                onClick={() => setRevealedTeam(null)}
-                className="w-full py-5 rounded-2xl bg-slate-900 text-white font-black text-lg hover:bg-slate-800 transition-all"
-              >
-                닫기
-              </button>
-            </div>
-          </div>
-        )}
       </div>
+
+      {/* Team Reveal Popup - Outside iso-card for proper positioning */}
+      {revealedTeam && teamSubmissions[revealedTeam] && (
+        <div
+          className="fixed inset-0 z-[100] flex items-center justify-center bg-slate-900/90 backdrop-blur-sm"
+          onClick={() => setRevealedTeam(null)}
+        >
+          <div
+            className="bg-white rounded-[40px] p-12 max-w-2xl w-full mx-6 shadow-2xl animate-in zoom-in-95 duration-300"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="text-center mb-8">
+              <div className="inline-flex items-center justify-center w-24 h-24 bg-emerald-500 rounded-[32px] mb-6 shadow-2xl shadow-emerald-200">
+                <span className="text-5xl">🎯</span>
+              </div>
+              <h2 className="text-4xl font-black text-slate-900 tracking-tight">{revealedTeam}조 제안서</h2>
+              <p className="text-lg font-bold text-slate-400 mt-2">{teamSubmissions[revealedTeam].name}</p>
+            </div>
+
+            <div className="bg-emerald-50 rounded-[28px] p-8 mb-6">
+              <div className="grid grid-cols-2 gap-6">
+                <div className="text-center">
+                  <p className="text-sm font-black text-emerald-600 uppercase tracking-widest mb-2">최종 제안가</p>
+                  <p className="text-5xl font-black text-slate-900">${teamSubmissions[revealedTeam].price}M</p>
+                </div>
+                <div className="text-center">
+                  <p className="text-sm font-black text-emerald-600 uppercase tracking-widest mb-2">예상 수익</p>
+                  <p className="text-5xl font-black text-slate-900">${teamSubmissions[revealedTeam].profit}M</p>
+                </div>
+              </div>
+            </div>
+
+            {teamSubmissions[revealedTeam].scores && (
+              <div className="bg-slate-50 rounded-[28px] p-8 mb-8">
+                <p className="text-sm font-black text-slate-400 uppercase tracking-widest mb-4 text-center">국가별 점수</p>
+                <div className="grid grid-cols-4 gap-4">
+                  <div className="text-center p-4 bg-white rounded-2xl">
+                    <span className="text-2xl">🇺🇸</span>
+                    <p className="text-2xl font-black text-slate-900 mt-2">{teamSubmissions[revealedTeam].scores.USA || '-'}</p>
+                  </div>
+                  <div className="text-center p-4 bg-white rounded-2xl">
+                    <span className="text-2xl">🇩🇪</span>
+                    <p className="text-2xl font-black text-slate-900 mt-2">{teamSubmissions[revealedTeam].scores.Germany || '-'}</p>
+                  </div>
+                  <div className="text-center p-4 bg-white rounded-2xl">
+                    <span className="text-2xl">🇨🇳</span>
+                    <p className="text-2xl font-black text-slate-900 mt-2">{teamSubmissions[revealedTeam].scores.China || '-'}</p>
+                  </div>
+                  <div className="text-center p-4 bg-white rounded-2xl">
+                    <span className="text-2xl">🇰🇷</span>
+                    <p className="text-2xl font-black text-slate-900 mt-2">{teamSubmissions[revealedTeam].scores.Korea || '-'}</p>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                setRevealedTeam(null);
+              }}
+              className="w-full py-5 rounded-2xl bg-slate-900 text-white font-black text-lg hover:bg-slate-800 transition-all"
+            >
+              닫기
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 
