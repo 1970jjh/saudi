@@ -1013,6 +1013,61 @@ const App: React.FC = () => {
         </div>
       )}
 
+      {/* Timer Control Bar - Large */}
+      <div className="iso-card p-6 bg-slate-900 relative overflow-hidden mb-8">
+        <div className="flex items-center justify-between gap-6">
+          <div className="flex items-center gap-4">
+            <span className="text-3xl">⏱️</span>
+            <span className="text-white font-black text-lg">미션 타이머</span>
+          </div>
+          {timerStatus === 'stopped' ? (
+            <div className="flex items-center gap-4">
+              <input
+                type="number"
+                value={timerMinutes}
+                onChange={(e) => setTimerMinutes(Math.max(1, Number(e.target.value)))}
+                className="w-24 bg-white rounded-xl px-4 py-3 text-center font-black text-xl border-2 border-slate-200 focus:border-emerald-500 outline-none"
+                min="1"
+              />
+              <span className="text-lg font-bold text-slate-400">분</span>
+              <button
+                onClick={handleStartTimer}
+                className="px-8 py-3 rounded-xl bg-emerald-500 text-white text-lg font-black hover:bg-emerald-600 transition-all shadow-lg shadow-emerald-500/30"
+              >
+                🚀 미션 스타트
+              </button>
+            </div>
+          ) : (
+            <div className="flex items-center gap-6">
+              <div className={`text-4xl font-black tabular-nums ${timerStatus === 'running' ? 'text-emerald-400' : 'text-amber-400'}`}>
+                {formatTime(remainingTime)}
+              </div>
+              {timerStatus === 'running' ? (
+                <button
+                  onClick={handlePauseTimer}
+                  className="px-6 py-3 rounded-xl bg-amber-500 text-white text-base font-black hover:bg-amber-600 transition-all shadow-lg shadow-amber-500/30"
+                >
+                  ⏸️ 일시정지
+                </button>
+              ) : (
+                <button
+                  onClick={handleResumeTimer}
+                  className="px-6 py-3 rounded-xl bg-emerald-500 text-white text-base font-black hover:bg-emerald-600 transition-all shadow-lg shadow-emerald-500/30"
+                >
+                  ▶️ 재개
+                </button>
+              )}
+              <button
+                onClick={handleStopTimer}
+                className="px-6 py-3 rounded-xl bg-red-500 text-white text-base font-black hover:bg-red-600 transition-all shadow-lg shadow-red-500/30"
+              >
+                ⏹️ 종료
+              </button>
+            </div>
+          )}
+        </div>
+      </div>
+
       {/* 팀별 제출 현황 */}
       <div className="iso-card p-12 bg-white relative overflow-hidden">
         <div className="absolute top-0 left-0 w-full h-2 bg-emerald-500" />
@@ -1021,56 +1076,6 @@ const App: React.FC = () => {
             <span className="w-10 h-10 bg-emerald-50 rounded-xl flex items-center justify-center text-lg">📊</span>
             팀별 제출 현황
           </h3>
-          {/* Compact Timer Control Bar */}
-          <div className="flex items-center gap-3 bg-slate-50 rounded-2xl px-4 py-2">
-            {timerStatus === 'stopped' ? (
-              <>
-                <span className="text-sm">⏱️</span>
-                <input
-                  type="number"
-                  value={timerMinutes}
-                  onChange={(e) => setTimerMinutes(Math.max(1, Number(e.target.value)))}
-                  className="w-16 bg-white rounded-lg px-2 py-1.5 text-center font-black text-sm border border-slate-200 focus:border-emerald-500 outline-none"
-                  min="1"
-                />
-                <span className="text-xs font-bold text-slate-400">분</span>
-                <button
-                  onClick={handleStartTimer}
-                  className="px-4 py-1.5 rounded-xl bg-emerald-500 text-white text-xs font-black hover:bg-emerald-600 transition-all shadow-sm"
-                >
-                  🚀 스타트
-                </button>
-              </>
-            ) : (
-              <>
-                <span className="text-sm">⏱️</span>
-                <span className={`text-xl font-black tabular-nums ${timerStatus === 'running' ? 'text-emerald-600' : 'text-amber-600'}`}>
-                  {formatTime(remainingTime)}
-                </span>
-                {timerStatus === 'running' ? (
-                  <button
-                    onClick={handlePauseTimer}
-                    className="px-3 py-1.5 rounded-xl bg-amber-500 text-white text-xs font-black hover:bg-amber-600 transition-all"
-                  >
-                    ⏸️ 일시정지
-                  </button>
-                ) : (
-                  <button
-                    onClick={handleResumeTimer}
-                    className="px-3 py-1.5 rounded-xl bg-emerald-500 text-white text-xs font-black hover:bg-emerald-600 transition-all"
-                  >
-                    ▶️ 재개
-                  </button>
-                )}
-                <button
-                  onClick={handleStopTimer}
-                  className="px-3 py-1.5 rounded-xl bg-red-500 text-white text-xs font-black hover:bg-red-600 transition-all"
-                >
-                  ⏹️ 종료
-                </button>
-              </>
-            )}
-          </div>
         </div>
         <div className="flex items-center justify-between mb-6">
           <span className="text-lg font-bold text-emerald-500">{Object.keys(teamSubmissions).length} / {maxTeams}팀 제출</span>
@@ -1132,15 +1137,22 @@ const App: React.FC = () => {
         <nav className="space-y-3 flex-1">
           <button onClick={() => setAdminSubView('dashboard')} className={`w-full text-left p-5 rounded-[20px] font-black text-sm tracking-tight border transition-all flex items-center gap-3 ${adminSubView === 'dashboard' ? 'bg-emerald-50 text-emerald-600 border-emerald-100/50' : 'text-slate-400 border-transparent hover:bg-slate-50'}`}>
             <span className="text-lg">⚙️</span>
-            <span>과정 개설</span>
+            <span>과정 개설 목록</span>
           </button>
-          <button onClick={() => setAdminSubView('submissions')} className={`w-full text-left p-5 rounded-[20px] font-black text-sm tracking-tight border transition-all flex items-center gap-3 ${adminSubView === 'submissions' ? 'bg-emerald-50 text-emerald-600 border-emerald-100/50' : 'text-slate-400 border-transparent hover:bg-slate-50'}`}>
-            <span className="text-lg">📊</span>
-            <span>팀별 제출 현황</span>
-            {Object.keys(teamSubmissions).length > 0 && (
-              <span className="ml-auto bg-emerald-500 text-white text-[10px] font-black px-2 py-0.5 rounded-full">{Object.keys(teamSubmissions).length}</span>
-            )}
-          </button>
+          {/* Active sessions as navigation items */}
+          {allSessions.filter(s => s.isSessionActive).map(session => (
+            <button
+              key={session.id}
+              onClick={() => { setCurrentSessionId(session.id); setAdminSubView('submissions'); }}
+              className={`w-full text-left p-5 rounded-[20px] font-black text-sm tracking-tight border transition-all flex items-center gap-3 ${adminSubView === 'submissions' && currentSessionId === session.id ? 'bg-emerald-50 text-emerald-600 border-emerald-100/50' : 'text-slate-400 border-transparent hover:bg-slate-50'}`}
+            >
+              <span className="text-lg">📊</span>
+              <span className="flex-1 truncate">{session.sessionName}</span>
+              {currentSessionId === session.id && Object.keys(teamSubmissions).length > 0 && (
+                <span className="ml-auto bg-emerald-500 text-white text-[10px] font-black px-2 py-0.5 rounded-full">{Object.keys(teamSubmissions).length}</span>
+              )}
+            </button>
+          ))}
           <div className="border-t border-slate-100 pt-4 mt-4">
             <button
               onClick={() => { setRole('USER'); setStep(AppStep.TEAM_SELECTION); }}
@@ -1157,7 +1169,7 @@ const App: React.FC = () => {
         <header className="mb-16 flex justify-between items-end">
           <div>
             <h2 className="text-5xl font-black text-slate-900 tracking-tighter mb-3">
-              {adminSubView === 'dashboard' ? '과정 개설' : '팀별 제출 현황'}
+              {adminSubView === 'dashboard' ? '과정 개설 목록' : sessionName || '팀별 제출 현황'}
             </h2>
             <p className="text-slate-400 font-bold text-sm uppercase tracking-widest">
               {adminSubView === 'dashboard' ? 'Session Setup & Control' : 'Real-time Team Submissions'}
