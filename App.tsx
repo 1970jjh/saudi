@@ -57,7 +57,7 @@ const App: React.FC = () => {
   const [newSessionTeams, setNewSessionTeams] = useState<number>(12);
 
   // Timer States
-  const [timerMinutes, setTimerMinutes] = useState<number>(10);
+  const [timerMinutes, setTimerMinutes] = useState<number>(100);
   const [timerStatus, setTimerStatus] = useState<'stopped' | 'running' | 'paused'>('stopped');
   const [timerEndTime, setTimerEndTime] = useState<number | null>(null);
   const [timerPausedRemaining, setTimerPausedRemaining] = useState<number | null>(null);
@@ -942,71 +942,6 @@ const App: React.FC = () => {
                <span className="w-10 h-10 bg-slate-50 rounded-xl flex items-center justify-center text-lg">📢</span>
                세션 컨트롤: {sessionName}
             </h3>
-            {/* Timer Control */}
-            <div className="bg-slate-50 rounded-[24px] p-6 mb-8">
-              <div className="flex items-center gap-3 mb-4">
-                <span className="text-2xl">⏱️</span>
-                <h4 className="font-black text-lg text-slate-900">미션 타이머</h4>
-                {timerStatus === 'running' && (
-                  <span className="ml-auto px-3 py-1 bg-emerald-500 text-white text-xs font-black rounded-full animate-pulse">진행중</span>
-                )}
-                {timerStatus === 'paused' && (
-                  <span className="ml-auto px-3 py-1 bg-amber-500 text-white text-xs font-black rounded-full">일시정지</span>
-                )}
-              </div>
-
-              {timerStatus === 'stopped' ? (
-                <div className="space-y-4">
-                  <div className="flex items-center gap-4">
-                    <label className="text-sm font-bold text-slate-500">시간 설정 (분)</label>
-                    <input
-                      type="number"
-                      value={timerMinutes}
-                      onChange={(e) => setTimerMinutes(Math.max(1, Number(e.target.value)))}
-                      className="w-24 bg-white rounded-xl p-3 text-center font-black text-xl border-2 border-slate-200 focus:border-emerald-500 outline-none"
-                      min="1"
-                    />
-                  </div>
-                  <button
-                    onClick={handleStartTimer}
-                    className="w-full py-4 rounded-[20px] bg-emerald-500 text-white font-black text-lg shadow-lg shadow-emerald-200 hover:bg-emerald-600 transition-all flex items-center justify-center gap-2"
-                  >
-                    <span>🚀</span> 미션 스타트
-                  </button>
-                </div>
-              ) : (
-                <div className="space-y-4">
-                  <div className="text-center py-4">
-                    <p className="text-6xl font-black text-slate-900 tracking-tight">{formatTime(remainingTime)}</p>
-                    <p className="text-sm font-bold text-slate-400 mt-2">남은 시간</p>
-                  </div>
-                  <div className="flex gap-3">
-                    {timerStatus === 'running' ? (
-                      <button
-                        onClick={handlePauseTimer}
-                        className="flex-1 py-3 rounded-[16px] bg-amber-500 text-white font-black shadow-lg shadow-amber-200 hover:bg-amber-600 transition-all flex items-center justify-center gap-2"
-                      >
-                        <span>⏸️</span> 일시정지
-                      </button>
-                    ) : (
-                      <button
-                        onClick={handleResumeTimer}
-                        className="flex-1 py-3 rounded-[16px] bg-emerald-500 text-white font-black shadow-lg shadow-emerald-200 hover:bg-emerald-600 transition-all flex items-center justify-center gap-2"
-                      >
-                        <span>▶️</span> 재개
-                      </button>
-                    )}
-                    <button
-                      onClick={handleStopTimer}
-                      className="flex-1 py-3 rounded-[16px] bg-red-500 text-white font-black shadow-lg shadow-red-200 hover:bg-red-600 transition-all flex items-center justify-center gap-2"
-                    >
-                      <span>⏹️</span> 미션 종료
-                    </button>
-                  </div>
-                </div>
-              )}
-            </div>
-
             <div className="grid grid-cols-2 gap-6 mb-8">
               <button onClick={triggerReveal} disabled={isResultsRevealed} className={`flex flex-col items-center justify-center p-8 rounded-[32px] transition-all border-4 ${isResultsRevealed ? 'bg-slate-50 border-slate-100 cursor-not-allowed opacity-50' : 'bg-emerald-500 border-emerald-600 text-white shadow-2xl shadow-emerald-200 hover:scale-105 active:scale-95'}`}>
                  <span className="text-4xl mb-3">🏁</span>
@@ -1081,16 +1016,66 @@ const App: React.FC = () => {
       {/* 팀별 제출 현황 */}
       <div className="iso-card p-12 bg-white relative overflow-hidden">
         <div className="absolute top-0 left-0 w-full h-2 bg-emerald-500" />
-        <div className="flex items-center justify-between mb-10">
+        <div className="flex items-center justify-between mb-6">
           <h3 className="font-black text-2xl text-slate-900 tracking-tight flex items-center gap-3">
             <span className="w-10 h-10 bg-emerald-50 rounded-xl flex items-center justify-center text-lg">📊</span>
             팀별 제출 현황
           </h3>
-          <div className="flex items-center gap-4">
-            <span className="text-lg font-bold text-emerald-500">{Object.keys(teamSubmissions).length} / {maxTeams}팀 제출</span>
-            <div className={`px-4 py-2 rounded-full text-sm font-black ${Object.keys(teamSubmissions).length === maxTeams ? 'bg-emerald-500 text-white' : 'bg-slate-100 text-slate-400'}`}>
-              {Object.keys(teamSubmissions).length === maxTeams ? '✓ 전원 제출 완료' : '제출 대기 중...'}
-            </div>
+          {/* Compact Timer Control Bar */}
+          <div className="flex items-center gap-3 bg-slate-50 rounded-2xl px-4 py-2">
+            {timerStatus === 'stopped' ? (
+              <>
+                <span className="text-sm">⏱️</span>
+                <input
+                  type="number"
+                  value={timerMinutes}
+                  onChange={(e) => setTimerMinutes(Math.max(1, Number(e.target.value)))}
+                  className="w-16 bg-white rounded-lg px-2 py-1.5 text-center font-black text-sm border border-slate-200 focus:border-emerald-500 outline-none"
+                  min="1"
+                />
+                <span className="text-xs font-bold text-slate-400">분</span>
+                <button
+                  onClick={handleStartTimer}
+                  className="px-4 py-1.5 rounded-xl bg-emerald-500 text-white text-xs font-black hover:bg-emerald-600 transition-all shadow-sm"
+                >
+                  🚀 스타트
+                </button>
+              </>
+            ) : (
+              <>
+                <span className="text-sm">⏱️</span>
+                <span className={`text-xl font-black tabular-nums ${timerStatus === 'running' ? 'text-emerald-600' : 'text-amber-600'}`}>
+                  {formatTime(remainingTime)}
+                </span>
+                {timerStatus === 'running' ? (
+                  <button
+                    onClick={handlePauseTimer}
+                    className="px-3 py-1.5 rounded-xl bg-amber-500 text-white text-xs font-black hover:bg-amber-600 transition-all"
+                  >
+                    ⏸️ 일시정지
+                  </button>
+                ) : (
+                  <button
+                    onClick={handleResumeTimer}
+                    className="px-3 py-1.5 rounded-xl bg-emerald-500 text-white text-xs font-black hover:bg-emerald-600 transition-all"
+                  >
+                    ▶️ 재개
+                  </button>
+                )}
+                <button
+                  onClick={handleStopTimer}
+                  className="px-3 py-1.5 rounded-xl bg-red-500 text-white text-xs font-black hover:bg-red-600 transition-all"
+                >
+                  ⏹️ 종료
+                </button>
+              </>
+            )}
+          </div>
+        </div>
+        <div className="flex items-center justify-between mb-6">
+          <span className="text-lg font-bold text-emerald-500">{Object.keys(teamSubmissions).length} / {maxTeams}팀 제출</span>
+          <div className={`px-4 py-2 rounded-full text-sm font-black ${Object.keys(teamSubmissions).length === maxTeams ? 'bg-emerald-500 text-white' : 'bg-slate-100 text-slate-400'}`}>
+            {Object.keys(teamSubmissions).length === maxTeams ? '✓ 전원 제출 완료' : '제출 대기 중...'}
           </div>
         </div>
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-4">
