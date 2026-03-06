@@ -1169,7 +1169,7 @@ const App: React.FC = () => {
                   return (
                     <tr key={teamNum} className={`border-b border-slate-100 ${submission ? 'bg-white' : 'bg-slate-50'}`}>
                       <td className="px-4 py-4 font-black text-slate-900">{teamNum}조</td>
-                      <td className={`px-4 py-4 text-center font-black text-lg ${isPriceCorrect && isProfitCorrect ? 'text-emerald-600 bg-emerald-50' : submission ? 'text-red-600 bg-red-50' : 'text-slate-400'}`}>
+                      <td className={`px-4 py-4 text-center font-black text-lg ${isPriceCorrect && isProfitCorrect ? 'text-red-600 bg-red-50' : submission ? 'text-blue-600 bg-blue-50' : 'text-slate-400'}`}>
                         {submission ? (isPriceCorrect && isProfitCorrect ? '수주 성공' : '수주 실패') : '-'}
                       </td>
                       <td className={`px-4 py-4 text-center font-black text-lg ${isPriceCorrect ? 'text-red-600 bg-red-50' : 'text-slate-700'}`}>
