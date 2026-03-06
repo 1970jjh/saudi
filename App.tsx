@@ -113,13 +113,28 @@ const App: React.FC = () => {
 
     const unsubscribeSubmissions = subscribeToSubmissions(currentSessionId, (submissions) => {
       setTeamSubmissions(submissions);
+      // Sync team submission data for real-time sharing across team members
+      if (selectedTeam && submissions[selectedTeam]) {
+        const sub = submissions[selectedTeam];
+        if (!hasSubmitted) {
+          setUserPrice(sub.price);
+          setExpectedProfit(sub.profit);
+          if (sub.scores) {
+            setManualScores(sub.scores);
+          }
+          setHasSubmitted(true);
+        }
+      } else if (selectedTeam && !submissions[selectedTeam]) {
+        // Submission was cleared (e.g., admin reset)
+        setHasSubmitted(false);
+      }
     });
 
     return () => {
       unsubscribeSession();
       unsubscribeSubmissions();
     };
-  }, [currentSessionId]);
+  }, [currentSessionId, selectedTeam, hasSubmitted]);
 
   // Team-specific sync for notes via Firestore
   useEffect(() => {
@@ -335,13 +350,15 @@ const App: React.FC = () => {
           <button onClick={() => setShowInfoCard(false)} className="w-full bg-slate-900 text-white py-4 rounded-2xl mt-6 font-bold tracking-tight shadow-xl shadow-slate-200 hover:bg-slate-800 transition-colors">닫기</button>
         </div>
         {zoomedIndex !== null && (
-          <div className="absolute inset-0 z-[60] bg-slate-900/98 flex items-center justify-center p-4 animate-in zoom-in-95 duration-300 rounded-[40px]" onClick={() => setZoomedIndex(null)}>
-            <div className="relative group max-w-full max-h-full flex items-center justify-center" onClick={(e) => e.stopPropagation()}>
-               <div className="absolute top-8 right-6 z-20 bg-white/10 backdrop-blur-xl px-5 py-2.5 border border-white/20 text-white text-xs font-bold uppercase tracking-widest rounded-full shadow-2xl">{getImageLabel(teamAssignedImages[zoomedIndex])}</div>
-               <img src={teamAssignedImages[zoomedIndex]} className="max-w-full max-h-[75vh] rounded-[40px] shadow-2xl object-contain border border-white/10" alt="" />
+          <div className="absolute inset-0 z-[60] bg-slate-900/98 flex flex-col items-center justify-center p-4 animate-in zoom-in-95 duration-300 rounded-[40px]" onClick={() => setZoomedIndex(null)}>
+            <div className="w-full max-w-md flex items-center justify-between px-2 mb-3 shrink-0" onClick={(e) => e.stopPropagation()}>
+               <button className="w-10 h-10 bg-white rounded-full flex items-center justify-center font-bold text-slate-900 shadow-xl hover:bg-red-500 hover:text-white transition-all" onClick={() => setZoomedIndex(null)}>&times;</button>
+               <div className="bg-white/10 backdrop-blur-xl px-5 py-2.5 border border-white/20 text-white text-xs font-bold uppercase tracking-widest rounded-full shadow-2xl">{getImageLabel(teamAssignedImages[zoomedIndex])}</div>
+            </div>
+            <div className="relative group max-w-full flex-1 min-h-0 flex items-center justify-center" onClick={(e) => e.stopPropagation()}>
+               <img src={teamAssignedImages[zoomedIndex]} className="max-w-full max-h-full rounded-[40px] shadow-2xl object-contain border border-white/10" alt="" />
                <button onClick={(e) => { e.stopPropagation(); const len = teamAssignedImages.length; setZoomedIndex((zoomedIndex - 1 + len) % len); }} className="absolute left-2 top-1/2 -translate-y-1/2 w-12 h-12 rounded-full bg-white/10 backdrop-blur-xl flex items-center justify-center text-white hover:bg-white/20 transition-all active:scale-90 z-10"><span className="text-3xl leading-none">‹</span></button>
                <button onClick={(e) => { e.stopPropagation(); const len = teamAssignedImages.length; setZoomedIndex((zoomedIndex + 1) % len); }} className="absolute right-2 top-1/2 -translate-y-1/2 w-12 h-12 rounded-full bg-white/10 backdrop-blur-xl flex items-center justify-center text-white hover:bg-white/20 transition-all active:scale-90 z-10"><span className="text-3xl leading-none">›</span></button>
-               <button className="absolute top-8 left-6 w-10 h-10 bg-white rounded-full flex items-center justify-center font-bold text-slate-900 shadow-xl z-[70] hover:bg-red-500 hover:text-white transition-all" onClick={() => setZoomedIndex(null)}>&times;</button>
             </div>
           </div>
         )}
@@ -581,15 +598,76 @@ const App: React.FC = () => {
       return null;
     }
 
-    if (hasSubmitted && !isResultsRevealed) {
+    // Check if team has submitted (either locally or via Firestore sync)
+    const teamSubmission = selectedTeam ? teamSubmissions[selectedTeam] : null;
+    const isTeamSubmitted = hasSubmitted || !!teamSubmission;
+
+    if (isTeamSubmitted && !isResultsRevealed) {
+      const displayPrice = teamSubmission?.price || userPrice;
+      const displayProfit = teamSubmission?.profit || expectedProfit;
+      const displayScores = teamSubmission?.scores || manualScores;
+      const displayName = teamSubmission?.name || studentName;
+
       return (
-        <div className="flex flex-col h-full animate-slide-up p-6 items-center justify-center text-center">
-          <div className="w-24 h-24 bg-slate-900 rounded-[32px] flex items-center justify-center text-5xl mb-8 animate-bounce shadow-2xl shadow-slate-200">📡</div>
-          <h2 className="text-2xl font-black text-slate-900 mb-4 tracking-tight">제안서 제출 완료</h2>
-          <p className="text-slate-400 font-bold leading-relaxed mb-10 px-6">모든 팀의 제안서가 수합될 때까지 대기해 주세요.<br/>본부에서 최종 결과를 곧 공개합니다.</p>
-          <div className="flex items-center gap-3 px-6 py-3 bg-emerald-50 rounded-full border border-emerald-100 animate-pulse">
-             <div className="w-2 h-2 bg-emerald-500 rounded-full" />
-             <span className="text-[10px] font-black text-emerald-600 uppercase tracking-widest">본부 승인 대기 중</span>
+        <div className="flex flex-col h-full animate-slide-up p-4 overflow-y-auto no-scrollbar">
+          <div className="iso-card p-5 flex-1 flex flex-col">
+            <div className="flex items-center justify-between mb-4">
+              <div className="flex items-center gap-2">
+                <div className="w-8 h-8 bg-emerald-500 rounded-lg flex items-center justify-center text-lg shadow-lg">✅</div>
+                <h2 className="text-lg font-black text-slate-900 tracking-tight">제출 완료</h2>
+              </div>
+              <div className="flex items-center gap-2">
+                <span className="text-[9px] font-black text-slate-400 uppercase">{displayName} 제출</span>
+              </div>
+            </div>
+
+            <div className="space-y-3 flex-1">
+              <div className="bg-emerald-50 rounded-[20px] p-4 border border-emerald-100">
+                <p className="text-[9px] font-black text-emerald-600 uppercase tracking-widest mb-2">우리 팀 제안서</p>
+                <div className="grid grid-cols-2 gap-3">
+                  <div className="bg-white rounded-xl p-3">
+                    <p className="text-[8px] font-black text-slate-400 uppercase mb-1">최종 제안가</p>
+                    <p className="text-xl font-black text-emerald-600">${displayPrice}M</p>
+                  </div>
+                  <div className="bg-white rounded-xl p-3">
+                    <p className="text-[8px] font-black text-slate-400 uppercase mb-1">예상 수익</p>
+                    <p className="text-xl font-black text-emerald-600">${displayProfit}M</p>
+                  </div>
+                </div>
+              </div>
+
+              <div className="bg-slate-50 rounded-[20px] p-4 border border-slate-100">
+                <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-2">국가별 점수</p>
+                <div className="grid grid-cols-2 gap-2">
+                  {(['USA', 'Germany', 'China', 'Korea'] as const).map(country => (
+                    <div key={country} className="flex items-center gap-2 bg-white p-2.5 rounded-xl">
+                      <div className="w-5 h-5 rounded-full overflow-hidden shrink-0"><img src={getCountryIcon(country)} alt="" className="w-full h-full object-cover" /></div>
+                      <span className="text-[11px] font-bold text-slate-600 flex-1">{getCountryDisplayName(country)}</span>
+                      <span className="text-sm font-black text-slate-900">{displayScores[country] || '-'}점</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <div className="flex items-center gap-3 px-4 py-3 bg-amber-50 rounded-2xl border border-amber-100">
+                <div className="w-2 h-2 bg-amber-500 rounded-full animate-pulse" />
+                <span className="text-[10px] font-black text-amber-600 uppercase tracking-widest">본부 결과 공개 대기 중</span>
+              </div>
+            </div>
+
+            <button
+              onClick={() => {
+                setHasSubmitted(false);
+                if (teamSubmission) {
+                  setUserPrice(teamSubmission.price);
+                  setExpectedProfit(teamSubmission.profit);
+                  if (teamSubmission.scores) setManualScores(teamSubmission.scores);
+                }
+              }}
+              className="w-full bg-slate-900 text-white py-4 rounded-2xl mt-4 font-bold tracking-tight shadow-xl shadow-slate-200 hover:bg-slate-800 transition-colors text-sm"
+            >
+              수정하기
+            </button>
           </div>
         </div>
       );
