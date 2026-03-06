@@ -1128,11 +1128,11 @@ const App: React.FC = () => {
             <div className="bg-emerald-50 rounded-[28px] p-8 mb-6">
               <div className="grid grid-cols-2 gap-6">
                 <div className="text-center">
-                  <p className="text-sm font-black text-emerald-600 uppercase tracking-widest mb-2">최종 제안가</p>
+                  <p className="text-xl font-black text-emerald-600 tracking-tight mb-3">최종 제안가</p>
                   <p className="text-5xl font-black text-slate-900">${teamSubmissions[revealedTeam].price}M</p>
                 </div>
                 <div className="text-center">
-                  <p className="text-sm font-black text-emerald-600 uppercase tracking-widest mb-2">예상 수익</p>
+                  <p className="text-xl font-black text-emerald-600 tracking-tight mb-3">예상 수익</p>
                   <p className="text-5xl font-black text-slate-900">${teamSubmissions[revealedTeam].profit}M</p>
                 </div>
               </div>
@@ -1140,23 +1140,27 @@ const App: React.FC = () => {
 
             {teamSubmissions[revealedTeam].scores && (
               <div className="bg-slate-50 rounded-[28px] p-8 mb-8">
-                <p className="text-sm font-black text-slate-400 uppercase tracking-widest mb-4 text-center">국가별 점수</p>
+                <p className="text-xl font-black text-slate-500 tracking-tight mb-6 text-center">국가별 점수</p>
                 <div className="grid grid-cols-4 gap-4">
                   <div className="text-center p-4 bg-white rounded-2xl">
-                    <span className="text-2xl">🇺🇸</span>
-                    <p className="text-2xl font-black text-slate-900 mt-2">{teamSubmissions[revealedTeam].scores.USA || '-'}</p>
+                    <div className="w-12 h-12 rounded-full overflow-hidden mx-auto mb-2 shadow-md"><img src={getCountryIcon('USA')} alt="미국" className="w-full h-full object-cover" /></div>
+                    <p className="text-sm font-bold text-slate-500 mb-1">미국</p>
+                    <p className="text-2xl font-black text-slate-900">{teamSubmissions[revealedTeam].scores.USA || '-'}</p>
                   </div>
                   <div className="text-center p-4 bg-white rounded-2xl">
-                    <span className="text-2xl">🇩🇪</span>
-                    <p className="text-2xl font-black text-slate-900 mt-2">{teamSubmissions[revealedTeam].scores.Germany || '-'}</p>
+                    <div className="w-12 h-12 rounded-full overflow-hidden mx-auto mb-2 shadow-md"><img src={getCountryIcon('Germany')} alt="독일" className="w-full h-full object-cover" /></div>
+                    <p className="text-sm font-bold text-slate-500 mb-1">독일</p>
+                    <p className="text-2xl font-black text-slate-900">{teamSubmissions[revealedTeam].scores.Germany || '-'}</p>
                   </div>
                   <div className="text-center p-4 bg-white rounded-2xl">
-                    <span className="text-2xl">🇨🇳</span>
-                    <p className="text-2xl font-black text-slate-900 mt-2">{teamSubmissions[revealedTeam].scores.China || '-'}</p>
+                    <div className="w-12 h-12 rounded-full overflow-hidden mx-auto mb-2 shadow-md"><img src={getCountryIcon('China')} alt="중국" className="w-full h-full object-cover" /></div>
+                    <p className="text-sm font-bold text-slate-500 mb-1">중국</p>
+                    <p className="text-2xl font-black text-slate-900">{teamSubmissions[revealedTeam].scores.China || '-'}</p>
                   </div>
                   <div className="text-center p-4 bg-white rounded-2xl">
-                    <span className="text-2xl">🇰🇷</span>
-                    <p className="text-2xl font-black text-slate-900 mt-2">{teamSubmissions[revealedTeam].scores.Korea || '-'}</p>
+                    <div className="w-12 h-12 rounded-full overflow-hidden mx-auto mb-2 shadow-md"><img src={getCountryIcon('Korea')} alt="한국" className="w-full h-full object-cover" /></div>
+                    <p className="text-sm font-bold text-slate-500 mb-1">한국</p>
+                    <p className="text-2xl font-black text-slate-900">{teamSubmissions[revealedTeam].scores.Korea || '-'}</p>
                   </div>
                 </div>
               </div>
