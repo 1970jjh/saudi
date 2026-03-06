@@ -353,15 +353,17 @@ const App: React.FC = () => {
         </div>
         {zoomedIndex !== null && (
           <div className="absolute inset-0 z-[60] bg-slate-900 flex flex-col items-center justify-center p-4 animate-in zoom-in-95 duration-300 rounded-[40px]" onClick={() => setZoomedIndex(null)}>
-            <div className="w-full max-w-md flex items-center justify-between px-2 mb-3 mt-12 shrink-0" onClick={(e) => e.stopPropagation()}>
+            <div className="flex-1" />
+            <div className="w-full max-w-md flex items-center justify-between px-2 mb-2 shrink-0" onClick={(e) => e.stopPropagation()}>
                <button className="w-10 h-10 bg-white rounded-full flex items-center justify-center font-bold text-slate-900 shadow-xl hover:bg-red-500 hover:text-white transition-all" onClick={() => setZoomedIndex(null)}>&times;</button>
                <div className="bg-white/10 backdrop-blur-xl px-5 py-2.5 border border-white/20 text-white text-xs font-bold uppercase tracking-widest rounded-full shadow-2xl">{getImageLabel(teamAssignedImages[zoomedIndex])}</div>
             </div>
-            <div className="relative group max-w-full flex-1 min-h-0 flex items-center justify-center" onClick={(e) => e.stopPropagation()}>
-               <img src={teamAssignedImages[zoomedIndex]} className="max-w-full max-h-full rounded-[40px] shadow-2xl object-contain border border-white/10" alt="" />
-               <button onClick={(e) => { e.stopPropagation(); const len = teamAssignedImages.length; setZoomedIndex((zoomedIndex - 1 + len) % len); }} className="absolute left-2 top-1/2 -translate-y-1/2 w-12 h-12 rounded-full bg-white/10 backdrop-blur-xl flex items-center justify-center text-white hover:bg-white/20 transition-all active:scale-90 z-10"><span className="text-3xl leading-none">‹</span></button>
-               <button onClick={(e) => { e.stopPropagation(); const len = teamAssignedImages.length; setZoomedIndex((zoomedIndex + 1) % len); }} className="absolute right-2 top-1/2 -translate-y-1/2 w-12 h-12 rounded-full bg-white/10 backdrop-blur-xl flex items-center justify-center text-white hover:bg-white/20 transition-all active:scale-90 z-10"><span className="text-3xl leading-none">›</span></button>
+            <div className="relative group max-w-full flex-[8] min-h-0 flex items-center justify-center w-full" onClick={(e) => e.stopPropagation()}>
+               <button onClick={(e) => { e.stopPropagation(); const len = teamAssignedImages.length; setZoomedIndex((zoomedIndex - 1 + len) % len); }} className="absolute left-0 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-white/20 backdrop-blur-xl flex items-center justify-center text-white hover:bg-white/30 transition-all active:scale-90 z-10"><span className="text-2xl leading-none">‹</span></button>
+               <img src={teamAssignedImages[zoomedIndex]} className="max-w-[calc(100%-100px)] max-h-full rounded-[32px] shadow-2xl object-contain border border-white/10 mx-auto" alt="" />
+               <button onClick={(e) => { e.stopPropagation(); const len = teamAssignedImages.length; setZoomedIndex((zoomedIndex + 1) % len); }} className="absolute right-0 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-white/20 backdrop-blur-xl flex items-center justify-center text-white hover:bg-white/30 transition-all active:scale-90 z-10"><span className="text-2xl leading-none">›</span></button>
             </div>
+            <div className="flex-1" />
           </div>
         )}
       </div>
