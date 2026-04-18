@@ -321,10 +321,20 @@ const App: React.FC = () => {
 
   const handleCreateSession = async () => {
     if (!newSessionName.trim()) return;
-    const sessionId = await createSession(newSessionName, newSessionTeams);
-    setCurrentSessionId(sessionId);
-    setNewSessionName('');
-    setNewSessionTeams(12);
+    try {
+      const sessionId = await createSession(newSessionName, newSessionTeams);
+      setCurrentSessionId(sessionId);
+      setNewSessionName('');
+      setNewSessionTeams(12);
+    } catch (err: any) {
+      console.error('[createSession] failed', err);
+      const code = err?.code || '';
+      if (code === 'permission-denied') {
+        alert('과정 개설 실패: Firestore 권한이 없습니다. Firebase 콘솔에서 firestore.rules를 배포해 주세요.');
+      } else {
+        alert(`과정 개설 실패: ${err?.message || '알 수 없는 오류'}`);
+      }
+    }
   };
 
   const handleSelectSession = (session: SessionState) => {
