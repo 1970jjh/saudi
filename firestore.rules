@@ -1,0 +1,20 @@
+rules_version = '2';
+
+// The app has no Firebase Auth; admin access is gated by a shared password
+// in the UI, and learners also read/write directly. Allow open access to the
+// `sessions` collection tree so room creation and team submissions work.
+service cloud.firestore {
+  match /databases/{database}/documents {
+    match /sessions/{sessionId} {
+      allow read, write: if true;
+
+      match /submissions/{submissionId} {
+        allow read, write: if true;
+      }
+
+      match /teamNotes/{noteId} {
+        allow read, write: if true;
+      }
+    }
+  }
+}
